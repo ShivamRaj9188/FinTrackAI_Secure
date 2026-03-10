@@ -6,13 +6,14 @@ const jwt = require('jsonwebtoken');
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  
+
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+    const { getJwtSecret } = require('./utils/secretHelper');
+    const decoded = jwt.verify(token, getJwtSecret());
     req.user = decoded;
     next();
   } catch (error) {
@@ -121,7 +122,7 @@ const updateTransaction = async (req, res) => {
       },
       { new: true, runValidators: true }
     );
-    
+
     if (!updatedTransaction) {
       return res.status(404).json({ message: 'Transaction not found' });
     }
@@ -149,7 +150,7 @@ const deleteTransaction = async (req, res) => {
       _id: transactionId,
       user: userId
     });
-    
+
     if (!deletedTransaction) {
       return res.status(404).json({ message: 'Transaction not found' });
     }

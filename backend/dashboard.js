@@ -5,13 +5,14 @@ const jwt = require('jsonwebtoken');
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  
+
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+    const { getJwtSecret } = require('./utils/secretHelper');
+    const decoded = jwt.verify(token, getJwtSecret());
     req.user = decoded;
     next();
   } catch (error) {
@@ -23,7 +24,7 @@ const verifyToken = (req, res, next) => {
 const getDashboardData = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     // Get user info
     const user = await User.findById(userId).select('-password');
     if (!user) {
@@ -31,7 +32,7 @@ const getDashboardData = async (req, res) => {
     }
 
     // For now, we'll send basic user data and some sample dashboard stats
-  
+
     const dashboardData = {
       user: {
         id: user._id,
@@ -40,13 +41,13 @@ const getDashboardData = async (req, res) => {
         role: user.role
       },
       stats: {
-        totalTransactions: 0, 
-        totalBalance: 0,      
-        monthlySpending: 0,   
-        savingsGoal: 0        
+        totalTransactions: 0,
+        totalBalance: 0,
+        monthlySpending: 0,
+        savingsGoal: 0
       },
       recentActivity: [
-        
+
         {
           id: 1,
           type: 'income',

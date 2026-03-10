@@ -24,21 +24,21 @@ const { verifyToken, getDashboardData, updateProfile } = require('./dashboard');
 const { upload, uploadTransactions, generateReport } = require('./uploadController');
 
 // Import transaction functions
-const { 
-  verifyToken: verifyTransactionToken, 
-  getTransactions, 
-  addTransaction, 
-  updateTransaction, 
-  deleteTransaction 
+const {
+  verifyToken: verifyTransactionToken,
+  getTransactions,
+  addTransaction,
+  updateTransaction,
+  deleteTransaction
 } = require('./transactionController');
 
 // Import user functions
-const { 
-  getUserProfile, 
-  updateUserProfile, 
-  deleteUserAccount, 
+const {
+  getUserProfile,
+  updateUserProfile,
+  deleteUserAccount,
   verifyUserAccount,
-  verifyToken: verifyUserToken 
+  verifyToken: verifyUserToken
 } = require('./userController');
 
 // Import admin functions
@@ -59,20 +59,20 @@ const {
 } = require('./adminController');
 
 // Import newsletter functions
-const { 
-  subscribeNewsletter, 
-  unsubscribeNewsletter, 
-  getAllSubscribers 
+const {
+  subscribeNewsletter,
+  unsubscribeNewsletter,
+  getAllSubscribers
 } = require('./newsletterController');
 
 // Import contact functions
-const { 
-  sendContactMessage, 
-  getContactMessages, 
-  getContactStats, 
-  updateContactMessage, 
-  sendEmailResponse, 
-  deleteContactMessage 
+const {
+  sendContactMessage,
+  getContactMessages,
+  getContactStats,
+  updateContactMessage,
+  sendEmailResponse,
+  deleteContactMessage
 } = require('./contactController');
 
 // Import payment functions
@@ -109,7 +109,7 @@ const corsOptions = {
       'http://localhost:8080', // Vue/Webpack dev server
       'http://localhost:4200'  // Angular dev server
     ].filter(Boolean);
-    
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -134,8 +134,9 @@ try {
   session = require('express-session');
 }
 
+const { getSessionSecret } = require('./utils/secretHelper');
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-session-secret',
+  secret: getSessionSecret(),
   resave: false,
   saveUninitialized: false,
   cookie: { secure: process.env.NODE_ENV === 'production' }
@@ -154,7 +155,7 @@ connectDB();
 
 // Health check - test if server is working
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'FinTrackAI Backend is running!',
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -164,7 +165,7 @@ app.get('/', (req, res) => {
 
 // Health check endpoint for deployment
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'healthy',
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
@@ -252,9 +253,9 @@ app.post('/api/test-email', async (req, res) => {
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email required' });
     }
-    
+
     const result = await sendWelcomeEmail(email);
-    
+
     res.json({
       success: result.success,
       message: result.success ? 'Test email sent successfully!' : 'Failed to send email',
@@ -272,7 +273,7 @@ app.use((err, req, res, next) => {
   if (process.env.LOG_LEVEL !== 'error' || process.env.NODE_ENV !== 'production') {
     console.error('Error:', err.message);
   }
-  
+
   res.status(500).json({
     success: false,
     message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message

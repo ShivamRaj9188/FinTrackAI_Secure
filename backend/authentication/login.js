@@ -8,7 +8,7 @@ const login = async (req, res) => {
   try {
     // Handle both nested and flat request formats
     let email, password;
-    
+
     if (req.body.email && typeof req.body.email === 'object') {
       // Frontend is sending nested format: { email: { email: "...", password: "..." } }
       email = req.body.email.email;
@@ -31,9 +31,9 @@ const login = async (req, res) => {
 
     // Check if account is active
     if (user.status === 'Inactive') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: 'Your account has been deactivated. Please contact admin@fintrackai.com or support team to reactivate your account.' 
+        message: 'Your account has been deactivated. Please contact admin@fintrackai.com or support team to reactivate your account.'
       });
     }
 
@@ -44,12 +44,13 @@ const login = async (req, res) => {
     }
 
     // Create login token
-    const token = jwt.sign({ 
+    const { getJwtSecret } = require('../utils/secretHelper');
+    const token = jwt.sign({
       id: user._id,
       userId: user._id,
-      email: user.email 
-    }, process.env.JWT_SECRET || 'defaultsecret', { 
-      expiresIn: process.env.JWT_EXPIRE || '7d' 
+      email: user.email
+    }, getJwtSecret(), {
+      expiresIn: process.env.JWT_EXPIRE || '7d'
     });
 
     // Send success response
@@ -57,19 +58,19 @@ const login = async (req, res) => {
       success: true,
       message: 'Login successful!',
       token,
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
         role: user.role,
         plan: user.plan || 'Basic'
       }
     });
 
   } catch (error) {
-    res.status(500).json({ 
-      message: 'Error logging in', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error logging in',
+      error: error.message
     });
   }
 };

@@ -7,13 +7,14 @@ const extractUserId = (req, res, next) => {
     if (req.user && (req.user.id || req.user._id)) {
       return next();
     }
-    
+
     // Try to extract from authorization header
     if (req.headers.authorization) {
       const token = req.headers.authorization.split(' ')[1];
       if (token) {
         try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const { getJwtSecret } = require('../utils/secretHelper');
+          const decoded = jwt.verify(token, getJwtSecret());
           if (decoded && decoded.id) {
             // Create user object if it doesn't exist
             if (!req.user) req.user = {};
@@ -24,7 +25,7 @@ const extractUserId = (req, res, next) => {
         }
       }
     }
-    
+
     next();
   } catch (error) {
     console.error('Error in extractUserId middleware:', error);

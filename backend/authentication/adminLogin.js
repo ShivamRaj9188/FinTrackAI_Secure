@@ -8,7 +8,7 @@ const adminLogin = async (req, res) => {
   try {
     // Handle both nested and flat request formats
     let email, password;
-    
+
     if (req.body.email && typeof req.body.email === 'object') {
       // Frontend is sending nested format: { email: { email: "...", password: "..." } }
       email = req.body.email.email;
@@ -36,24 +36,25 @@ const adminLogin = async (req, res) => {
     }
 
     // Create login token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
+    const { getJwtSecret } = require('../utils/secretHelper');
+    const token = jwt.sign({ userId: user._id }, getJwtSecret(), { expiresIn: process.env.JWT_EXPIRE || '7d' });
 
     // Send success response
     res.json({
       message: 'Admin login successful!',
       token,
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
-        role: user.role 
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
       }
     });
 
   } catch (error) {
-    res.status(500).json({ 
-      message: 'Error logging in', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error logging in',
+      error: error.message
     });
   }
 };

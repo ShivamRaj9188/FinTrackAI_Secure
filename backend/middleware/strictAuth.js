@@ -5,9 +5,9 @@ const User = require('../authentication/User');
 const strictAuthMiddleware = async (req, res, next) => {
   try {
     console.log('=== STRICT AUTH CHECK ===');
-    
+
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       console.log('BLOCKED: No token provided');
       return res.status(401).json({
@@ -19,7 +19,8 @@ const strictAuthMiddleware = async (req, res, next) => {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+      const { getJwtSecret } = require('../utils/secretHelper');
+      decoded = jwt.verify(token, getJwtSecret());
     } catch (error) {
       console.log('BLOCKED: Invalid token');
       return res.status(401).json({
@@ -48,7 +49,7 @@ const strictAuthMiddleware = async (req, res, next) => {
     }
 
     console.log('AUTH SUCCESS: User authenticated -', user.email);
-    
+
     // Set user info for next middleware
     req.user = {
       id: user._id,
@@ -59,7 +60,7 @@ const strictAuthMiddleware = async (req, res, next) => {
       plan: user.plan || 'Basic',
       role: user.role || 'user'
     };
-    
+
     console.log('User set in req.user:', req.user.email, 'Plan:', req.user.plan);
 
     next();

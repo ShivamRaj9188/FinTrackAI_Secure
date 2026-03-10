@@ -5,31 +5,32 @@ const jwt = require('jsonwebtoken');
 // Middleware to verify JWT token (same as dashboard)
 const verifyToken = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  
+
   if (!token) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       success: false,
-      message: 'No token provided' 
+      message: 'No token provided'
     });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
-    
+    const { getJwtSecret } = require('./utils/secretHelper');
+    const decoded = jwt.verify(token, getJwtSecret());
+
     // Set both id and _id for compatibility
     req.user = {
       ...decoded,
       _id: decoded.id || decoded._id || decoded.userId,
       id: decoded.id || decoded._id || decoded.userId
     };
-    
+
     console.log('Authenticated user:', req.user);
     next();
   } catch (error) {
     console.error('Token verification error:', error);
-    return res.status(401).json({ 
+    return res.status(401).json({
       success: false,
-      message: 'Invalid token' 
+      message: 'Invalid token'
     });
   }
 };
@@ -38,7 +39,7 @@ const verifyToken = (req, res, next) => {
 const getUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     // Get user info
     const user = await User.findById(userId).select('-password');
     if (!user) {
@@ -76,9 +77,9 @@ const updateUserProfile = async (req, res) => {
     // Get current user to check if email is being changed
     const currentUser = await User.findById(userId);
     if (!currentUser) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'User not found' 
+        message: 'User not found'
       });
     }
 
@@ -86,9 +87,9 @@ const updateUserProfile = async (req, res) => {
     if (email && email !== currentUser.email) {
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Email already in use by another account' 
+          message: 'Email already in use by another account'
         });
       }
     }
@@ -96,12 +97,12 @@ const updateUserProfile = async (req, res) => {
     // Update user info
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { 
-        name, 
-        email, 
-        phone, 
-        dob, 
-        location 
+      {
+        name,
+        email,
+        phone,
+        dob,
+        location
       },
       { new: true }
     ).select('-password');
@@ -128,18 +129,18 @@ const updateUserProfile = async (req, res) => {
 
   } catch (error) {
     console.error('Update user profile error:', error);
-    
+
     // Handle duplicate key error
     if (error.code === 11000) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'Email already in use by another account' 
+        message: 'Email already in use by another account'
       });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       success: false,
-      message: 'Server error' 
+      message: 'Server error'
     });
   }
 };
