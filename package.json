@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "pdf2json": "^3.1.6",
+    "uuid": "^11.1.0"
+  }
+}
