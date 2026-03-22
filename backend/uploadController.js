@@ -8,8 +8,9 @@ const { v4: uuidv4 } = require('uuid');
 const { checkUploadLimit } = require('./middleware/planLimits');
 const User = require('./authentication/User');
 
-// Multer setup for file uploads
-const upload = multer({ dest: 'uploads/' });
+// Multer setup for file uploads (Vercel Serverless functions can only write to /tmp/)
+const uploadDir = process.env.VERCEL ? '/tmp/' : 'uploads/';
+const upload = multer({ dest: uploadDir });
 
 // Handle file upload and extract transactions
 const uploadTransactions = async (req, res) => {
