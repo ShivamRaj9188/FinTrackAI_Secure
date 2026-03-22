@@ -35,9 +35,14 @@ const adminLogin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid admin credentials' });
     }
 
-    // Create login token
+    // Create login token with admin role for RBAC
     const { getJwtSecret } = require('../utils/secretHelper');
-    const token = jwt.sign({ userId: user._id }, getJwtSecret(), { expiresIn: process.env.JWT_EXPIRE || '7d' });
+    const token = jwt.sign({
+      id: user._id,
+      userId: user._id,
+      email: user.email,
+      role: 'admin'
+    }, getJwtSecret(), { expiresIn: process.env.JWT_EXPIRE || '1d' });
 
     // Send success response
     res.json({

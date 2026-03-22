@@ -17,30 +17,33 @@ import Signup from './Authentication/Signup';
 import Admin from './Authentication/Admin';
 import AuthSuccess from './Authentication/AuthSuccess';
 import AuthSuccessHandler from './components/AuthSuccessHandler';
-import Dashboard from './Dashboard/Dashboard';
-import AdminDashboard from './Dashboard/AdminDashboard';
-import Transactions from './Dashboard/Transactions';
-import Upload from './Dashboard/Upload';
-import Insights from './Dashboard/Insights';
-import Reports from './Dashboard/Reports';
-import UserDashboard from './UserDashboard/UserDashboard';
+import DashboardLayout from './components/DashboardLayout';
+import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import BackToTopButton from './components/BackToTopButton';
 import MainPricing from './components/MainPricing';
 
+// Lazy load dashboard routes for performance (code splitting)
+const Dashboard = React.lazy(() => import('./Dashboard/Dashboard'));
+const AdminDashboard = React.lazy(() => import('./Dashboard/AdminDashboard'));
+const Transactions = React.lazy(() => import('./Dashboard/Transactions'));
+const Upload = React.lazy(() => import('./Dashboard/Upload'));
+const Insights = React.lazy(() => import('./Dashboard/Insights'));
+const Reports = React.lazy(() => import('./Dashboard/Reports'));
+const UserDashboard = React.lazy(() => import('./UserDashboard/UserDashboard'));
+
+// Modern sleek loader for Suspense fallback
+const PageLoader = () => (
+  <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+    <div className="w-12 h-12 border-4 border-white/5 border-t-[var(--accent-primary)] rounded-full animate-spin"></div>
+  </div>
+);
+
 // Home page component
 const HomePage = () => {
-  // Debug: Log current URL
-  console.log('=== HOMEPAGE DEBUG ===');
-  console.log('Current URL:', window.location.href);
-  console.log('Search params:', window.location.search);
-  console.log('Has token param:', new URLSearchParams(window.location.search).get('token') ? 'YES' : 'NO');
-  console.log('Has user param:', new URLSearchParams(window.location.search).get('user') ? 'YES' : 'NO');
-  console.log('=== END DEBUG ===');
-  
   return (
     <AuthSuccessHandler>
-      <div className="font-sans bg-white text-slate-900">
+      <div className="font-sans bg-[#0A0A0A] text-white">
         <Header />
         <Hero />
         <Features />
@@ -51,38 +54,68 @@ const HomePage = () => {
   );
 };
 
-
-
 function App() {
   return (
     <Router>
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/features" element={<FeaturesPage />} />
+      <React.Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/pricing" element={<MainPricing />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/auth/success" element={<AuthSuccess />} />
 
-        <Route path="/help" element={<Help />} />
-        <Route path="/pricing" element={<MainPricing />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/auth/success" element={<AuthSuccess />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/dashboard" element={
-          <AuthSuccessHandler>
-            <Dashboard />
-          </AuthSuccessHandler>
-        } />
-        <Route path="/transaction" element={<Transactions />} />
-        <Route path="/upload" element={<Upload />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/userdashboard" element={<UserDashboard />} />
-      </Routes>
+          {/* Protected Admin Route */}
+          <Route path="/admin-dashboard" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          {/* Protected Dashboard Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <AuthSuccessHandler>
+                <DashboardLayout><Dashboard /></DashboardLayout>
+              </AuthSuccessHandler>
+            </ProtectedRoute>
+          } />
+          <Route path="/transaction" element={
+            <ProtectedRoute>
+              <DashboardLayout><Transactions /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/upload" element={
+            <ProtectedRoute>
+              <DashboardLayout><Upload /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/insights" element={
+            <ProtectedRoute>
+              <DashboardLayout><Insights /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <DashboardLayout><Reports /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/userdashboard" element={
+            <ProtectedRoute>
+              <DashboardLayout><UserDashboard /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </React.Suspense>
       <BackToTopButton />
     </Router>
   );

@@ -1,67 +1,133 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-const Pricing = () => {
-  return (
-    <section id="pricing" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Choose Your Plan</h2>
-          <p className="text-xl text-slate-600 max-w-3xl mx-auto">Start free and upgrade as your financial needs grow</p>
+const plans = [
+  {
+    name: 'Starter',
+    price: 'Free',
+    period: 'forever',
+    description: 'Perfect for getting started with AI-driven finance tracking.',
+    features: [
+      '5 statement uploads / month',
+      'Basic AI categorization',
+      'Spending overview dashboard',
+      'Email support',
+    ],
+    cta: 'Get Started Free',
+    accent: false,
+  },
+  {
+    name: 'Pro',
+    price: '₹499',
+    period: '/ month',
+    description: 'Unlock the full power of AI insights and unlimited tracking.',
+    features: [
+      'Unlimited statement uploads',
+      'Advanced AI insights & tips',
+      'Category trend analysis',
+      'CSV & PDF report export',
+      'Priority support',
+      'Custom budget alerts',
+    ],
+    cta: 'Upgrade to Pro',
+    accent: true,
+    badge: 'POPULAR',
+  },
+  {
+    name: 'Enterprise',
+    price: '₹1,999',
+    period: '/ month',
+    description: 'For teams and businesses needing financial intelligence at scale.',
+    features: [
+      'Everything in Pro',
+      'Multi-user access',
+      'API access',
+      'Custom integrations',
+      'Dedicated account manager',
+      'SLA guarantee',
+    ],
+    cta: 'Contact Sales',
+    accent: false,
+  },
+];
+
+const Pricing = () => (
+  <section id="pricing" className="py-28 bg-[#0A0A0A] relative overflow-hidden">
+    {/* Glow */}
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[var(--accent-secondary)] opacity-[0.03] blur-[200px] rounded-full"></div>
+
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      {/* Header */}
+      <div className="text-center mb-16 animate-fade-in-up">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/[0.06] rounded-full mb-6">
+          <span className="text-[10px] font-semibold tracking-wider text-[#666]">SIMPLE PRICING</span>
         </div>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {/* Free Plan */}
-          <div className="border border-slate-200 rounded-lg p-8 text-center shadow hover:shadow-lg transition">
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">Free</h3>
-            <p className="text-3xl font-bold text-blue-600 mb-1">₹0</p>
-            <p className="text-sm text-slate-500 mb-6">Forever free</p>
-            <ul className="text-slate-600 text-left mb-6 space-y-2">
-              <li>• Upload up to 5 statements/month</li>
-              <li>• Basic AI categorization</li>
-              <li>• Simple dashboard</li>
-              <li>• 7-day data retention</li>
-            </ul>
-            {/* <button className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm font-medium">
-              Get Started
-            </button> */}
-          </div>
-
-          {/* Premium Plan */}
-          <div className="border border-blue-600 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg p-8 text-center shadow-xl transform scale-105">
-            <h3 className="text-xl font-semibold text-white mb-2">Premium</h3>
-            <p className="text-3xl font-bold text-white mb-1">₹149</p>
-            <p className="text-sm text-white mb-6">per month</p>
-            <ul className="text-white text-left mb-6 space-y-2">
-              <li>• Unlimited statement uploads</li>
-              <li>• Advanced AI insights</li>
-              <li>• Budget planning & alerts</li>
-              <li>• PDF/Excel exports</li>
-              <li>• Priority support</li>
-            </ul>
-            {/* <button className="w-full bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 text-sm font-medium">
-              Start Premium
-            </button> */}
-          </div>
-
-          {/* Business Plan */}
-          <div className="bg-slate-900 text-white rounded-lg p-8 text-center shadow hover:shadow-lg transition">
-            <h3 className="text-xl font-semibold mb-2">Business</h3>
-            <p className="text-3xl font-bold mb-1">₹999</p>
-            <p className="text-sm text-slate-300 mb-6">per month</p>
-            <ul className="text-slate-300 text-left mb-6 space-y-2">
-              <li>• Everything in Premium</li>
-              <li>• GST expense tracking</li>
-              <li>• P&L statements</li>
-              <li>• Invoice management</li>
-              <li>• Team collaboration</li>
-            </ul>
-            {/* <button className="w-full bg-white text-slate-900 px-4 py-2 rounded hover:bg-slate-200 text-sm font-medium">
-              Contact Sales
-            </button> */}
-          </div>
-        </div>
+        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-5">
+          Choose Your <span className="gradient-text">Plan</span>
+        </h2>
+        <p className="text-lg text-[#666] max-w-xl mx-auto">
+          Start free, upgrade when you're ready. No hidden fees, cancel anytime.
+        </p>
       </div>
-    </section>
-  );
-};
+
+      {/* Plans Grid */}
+      <div className="grid md:grid-cols-3 gap-5 items-start">
+        {plans.map((plan, i) => (
+          <div
+            key={i}
+            className={`relative rounded-2xl p-7 transition-all animate-fade-in-up ${
+              plan.accent
+                ? 'glow-card border-[var(--accent-primary)]/20 ring-1 ring-[var(--accent-primary)]/10 scale-[1.02]'
+                : 'cashmate-card'
+            }`}
+            style={{ animationDelay: `${i * 100}ms` }}
+          >
+            {/* Badge */}
+            {plan.badge && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-black text-[10px] font-bold px-4 py-1 rounded-full">
+                  {plan.badge}
+                </span>
+              </div>
+            )}
+
+            {/* Plan Header */}
+            <div className="mb-6">
+              <h3 className="text-sm font-bold text-[#888] uppercase tracking-wider mb-3">{plan.name}</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-black text-white">{plan.price}</span>
+                {plan.period !== 'forever' && (
+                  <span className="text-sm text-[#555] font-medium">{plan.period}</span>
+                )}
+              </div>
+              <p className="text-sm text-[#555] mt-3 leading-relaxed">{plan.description}</p>
+            </div>
+
+            {/* Features */}
+            <ul className="space-y-3 mb-8">
+              {plan.features.map((feat, j) => (
+                <li key={j} className="flex items-center gap-3 text-sm text-[#999]">
+                  <i className="fas fa-check text-[var(--accent-secondary)] text-[10px]"></i>
+                  {feat}
+                </li>
+              ))}
+            </ul>
+
+            {/* CTA */}
+            <Link to={plan.name === 'Enterprise' ? '/contact' : '/signup'}>
+              <button className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all ${
+                plan.accent
+                  ? 'bg-white text-black hover:scale-[1.02] hover:shadow-lg hover:shadow-white/10'
+                  : 'bg-white/[0.04] text-white border border-white/[0.08] hover:bg-white/[0.08]'
+              }`}>
+                {plan.cta}
+              </button>
+            </Link>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 export default Pricing;

@@ -6,6 +6,8 @@ const sendContactMessage = async (req, res) => {
   try {
     const { firstName, lastName, email, department, message } = req.body;
 
+    console.log('Contact form submission received:', { firstName, lastName, email, department });
+
     // Validation
     if (!firstName || !lastName || !email || !message) {
       return res.status(400).json({
@@ -23,55 +25,62 @@ const sendContactMessage = async (req, res) => {
       });
     }
 
+    // Map frontend departments to backend enum values if necessary
+    const allowedDepartments = ['Support', 'Feedback', 'Careers', 'Sales', 'Partnership', ''];
+    const sanitizedDepartment = allowedDepartments.includes(department) ? department : '';
+
     // Save contact message to database
+    // Note: If MongoDB is not connected, this will wait or fail.
     const contactMessage = new Contact({
       firstName,
       lastName,
       email,
-      department: department || '',
+      department: sanitizedDepartment,
       message,
       status: 'new',
       priority: 'medium'
     });
 
+    console.log('Attempting to save contact message...');
     const savedContact = await contactMessage.save();
+    console.log('Contact message saved successfully:', savedContact._id);
 
     // Send notification email to admin
     try {
-      await sendContactNotification({ 
-        name: `${firstName} ${lastName}`, 
-        email, 
-        subject: department || 'General Inquiry', 
+      await sendContactNotification({
+        name: `${firstName} ${lastName}`,
+        email,
+        subject: sanitizedDepartment || 'General Inquiry',
         message,
-        contactId: savedContact._id 
+        contactId: savedContact._id
       });
     } catch (emailError) {
-      console.error('Failed to send admin notification:', emailError);
+      console.error('Failed to send admin notification:', emailError.message);
     }
 
     // Send confirmation email to user
     try {
       await sendContactConfirmation(email, firstName);
     } catch (emailError) {
-      console.error('Failed to send user confirmation:', emailError);
+      console.error('Failed to send user confirmation:', emailError.message);
     }
 
     res.status(200).json({
       success: true,
-      message: 'Thank you for your message! We\'ve received it and will get back to you within 24 hours. Check your email for confirmation! 📧',
-      data: { 
+      message: 'SIGNAL RECEIVED. OUR SYSTEMS HAVE LOGGED YOUR TRANSMISSION.',
+      data: {
         id: savedContact._id,
-        name: `${firstName} ${lastName}`, 
-        email, 
-        department: department || 'General Inquiry'
+        name: `${firstName} ${lastName}`,
+        email,
+        department: sanitizedDepartment || 'General Inquiry'
       }
     });
 
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('CRITICAL: Contact form error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to send message. Please try again later.'
+      message: `System Error: ${error.message || 'Internal transmission failure.'}`
     });
   }
 };
@@ -79,13 +88,13 @@ const sendContactMessage = async (req, res) => {
 // Get all contact messages for admin (with pagination and filters)
 const getContactMessages = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      status, 
-      department, 
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      department,
       priority,
-      search 
+      search
     } = req.query;
 
     // Build filter object
@@ -93,7 +102,7 @@ const getContactMessages = async (req, res) => {
     if (status) filter.status = status;
     if (department) filter.department = department;
     if (priority) filter.priority = priority;
-    
+
     // Search in name, email, or message
     if (search) {
       filter.$or = [
@@ -181,7 +190,7 @@ const updateContactMessage = async (req, res) => {
     const { status, adminResponse, priority } = req.body;
 
     const updateData = { updatedAt: Date.now() };
-    
+
     if (status) updateData.status = status;
     if (priority) updateData.priority = priority;
     if (adminResponse) {
@@ -241,7 +250,7 @@ const sendEmailResponse = async (req, res) => {
     // Send email response (you'll need to implement this in emailService)
     try {
       await sendContactResponse(contact.email, contact.firstName, responseMessage);
-      
+
       // Update contact with response
       await Contact.findByIdAndUpdate(id, {
         adminResponse: responseMessage,

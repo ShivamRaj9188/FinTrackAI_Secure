@@ -3,7 +3,12 @@
 
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config({ quiet: true });
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
+require('dotenv').config();
+console.log('MONGODB_URI Loaded:', process.env.MONGODB_URI ? 'YES' : 'NO');
 
 // Import database connection
 const connectDB = require('./database');
@@ -19,6 +24,9 @@ const authRoutes = require('./routes/authRoutes');
 
 // Import dashboard functions
 const { verifyToken, getDashboardData, updateProfile } = require('./dashboard');
+
+// Import validation middleware
+const { registerValidation, loginValidation, transactionValidation } = require('./middleware/validation');
 
 // Import upload functions
 const { upload, uploadTransactions, generateReport } = require('./uploadController');
@@ -82,8 +90,12 @@ const {
   getSubscriptionStatus
 } = require('./paymentController');
 
-// Import strict auth middleware
+// Import insights controller
+const { generateInsights } = require('./insightsController');
+
+// Import strict auth middleware with role-based access control
 const strictAuthMiddleware = require('./middleware/strictAuth');
+const { requireRole } = require('./middleware/strictAuth');
 
 // Import email service for testing
 const { sendWelcomeEmail } = require('./emailService');
@@ -122,6 +134,33 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Security Middlewares
+app.use(helmet()); // Set security HTTP headers
+app.use(xss()); // Sanitize user input from incoming POST, GET, and params
+app.use(mongoSanitize()); // Prevent NoSQL injection
+
+// Global Rate Limiting
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+  }
+});
+app.use('/api/', globalLimiter);
+
+// Auth Rate Limiting (Stricter)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10, // Limit each IP to 10 auth requests per 15 mins
+  message: {
+    success: false,
+    message: 'Too many login attempts, please try again after 15 minutes'
+  }
+});
+app.use('/api/auth/', authLimiter);
 
 // Session middleware for passport
 let session;
@@ -185,12 +224,15 @@ app.get('/api/reports/generate', strictAuthMiddleware, generateReport);
 app.post('/api/reports/generate', strictAuthMiddleware, generateReport);
 
 // Authentication Routes
-app.post('/api/auth/register', signup);     // User signup
-app.post('/api/auth/login', login);         // User login  
-app.post('/api/auth/admin/login', adminLogin); // Admin login
+app.post('/api/auth/register', registerValidation, signup);     // User signup (with validation)
+app.post('/api/auth/login', loginValidation, login);         // User login (with validation)
+app.post('/api/auth/admin/login', loginValidation, adminLogin); // Admin login (with validation)
 
 // Google Authentication Routes
 app.use('/api/auth', authRoutes);
+
+// AI Insights Route (Protected)
+app.post('/api/insights/generate', strictAuthMiddleware, generateInsights);
 
 // Dashboard Routes (Protected - require STRICT authentication)
 app.get('/api/dashboard', strictAuthMiddleware, getDashboardData);    // Get user dashboard data
@@ -198,23 +240,23 @@ app.put('/api/dashboard/profile', strictAuthMiddleware, updateProfile); // Updat
 
 // Transaction Routes (Protected - require STRICT authentication)
 app.get('/api/transactions', strictAuthMiddleware, getTransactions);        // Get user transactions
-app.post('/api/transactions', strictAuthMiddleware, addTransaction);        // Add new transaction
-app.put('/api/transactions/:id', strictAuthMiddleware, updateTransaction);  // Update transaction
+app.post('/api/transactions', strictAuthMiddleware, transactionValidation, addTransaction);        // Add new transaction (with validation)
+app.put('/api/transactions/:id', strictAuthMiddleware, transactionValidation, updateTransaction);  // Update transaction (with validation)
 app.delete('/api/transactions/:id', strictAuthMiddleware, deleteTransaction); // Delete transaction
 
-// Admin Routes (Protected - require admin authentication)
-app.get('/api/admin/stats', verifyUserToken, getAdminStats);           // Get admin dashboard stats
-app.get('/api/admin/users', verifyUserToken, getAllUsers);             // Get all users with pagination
-app.get('/api/admin/users/:userId', verifyUserToken, getUserById);     // Get single user
-app.patch('/api/admin/users/:userId/status', verifyUserToken, updateUserStatus); // Update user status
-app.delete('/api/admin/users/:userId', verifyUserToken, deleteUser);   // Delete user
-app.post('/api/admin/users', verifyUserToken, createUser);             // Create new user
-app.put('/api/admin/users/:userId', verifyUserToken, updateUser);      // Update user
-app.get('/api/admin/analytics', verifyUserToken, getAnalytics);        // Get analytics data
-app.get('/api/admin/analytics/user-growth', verifyUserToken, getUserGrowthData); // Get user growth data
-app.post('/api/admin/notification', verifyUserToken, sendNotification); // Send notification to users
-app.post('/api/admin/maintenance', verifyUserToken, toggleMaintenanceMode); // Toggle maintenance mode
-app.get('/api/maintenance/status', getMaintenanceStatus); // Get maintenance status (public)
+// Admin Routes (Protected - require admin role via RBAC)
+app.get('/api/admin/stats', strictAuthMiddleware, requireRole('admin'), getAdminStats);
+app.get('/api/admin/users', strictAuthMiddleware, requireRole('admin'), getAllUsers);
+app.get('/api/admin/users/:userId', strictAuthMiddleware, requireRole('admin'), getUserById);
+app.patch('/api/admin/users/:userId/status', strictAuthMiddleware, requireRole('admin'), updateUserStatus);
+app.delete('/api/admin/users/:userId', strictAuthMiddleware, requireRole('admin'), deleteUser);
+app.post('/api/admin/users', strictAuthMiddleware, requireRole('admin'), createUser);
+app.put('/api/admin/users/:userId', strictAuthMiddleware, requireRole('admin'), updateUser);
+app.get('/api/admin/analytics', strictAuthMiddleware, requireRole('admin'), getAnalytics);
+app.get('/api/admin/analytics/user-growth', strictAuthMiddleware, requireRole('admin'), getUserGrowthData);
+app.post('/api/admin/notification', strictAuthMiddleware, requireRole('admin'), sendNotification);
+app.post('/api/admin/maintenance', strictAuthMiddleware, requireRole('admin'), toggleMaintenanceMode);
+app.get('/api/maintenance/status', getMaintenanceStatus); // Public
 
 // User Routes (Protected - require STRICT authentication)
 app.get('/api/user/profile', strictAuthMiddleware, getUserProfile);        // Get user profile
@@ -234,17 +276,17 @@ app.get('/api/subscription/status', strictAuthMiddleware, getSubscriptionStatus)
 // Newsletter Routes (Public - no authentication required)
 app.post('/api/newsletter/subscribe', subscribeNewsletter);            // Subscribe to newsletter
 app.post('/api/newsletter/unsubscribe', unsubscribeNewsletter);        // Unsubscribe from newsletter
-app.get('/api/newsletter/subscribers', verifyUserToken, getAllSubscribers); // Get all subscribers (admin only)
+app.get('/api/newsletter/subscribers', strictAuthMiddleware, requireRole('admin'), getAllSubscribers); // Admin only
 
 // Contact Routes (Public - no authentication required)
 app.post('/api/contact/send', sendContactMessage);                     // Send contact form message
 
-// Admin Contact Management Routes (Requires authentication)
-app.get('/api/admin/contacts', verifyUserToken, getContactMessages);           // Get all contact messages
-app.get('/api/admin/contacts/stats', verifyUserToken, getContactStats);        // Get contact statistics
-app.put('/api/admin/contacts/:id', verifyUserToken, updateContactMessage);     // Update contact status/response
-app.post('/api/admin/contacts/:id/respond', verifyUserToken, sendEmailResponse); // Send email response
-app.delete('/api/admin/contacts/:id', verifyUserToken, deleteContactMessage);  // Delete contact message
+// Admin Contact Management Routes (Requires admin role)
+app.get('/api/admin/contacts', strictAuthMiddleware, requireRole('admin'), getContactMessages);
+app.get('/api/admin/contacts/stats', strictAuthMiddleware, requireRole('admin'), getContactStats);
+app.put('/api/admin/contacts/:id', strictAuthMiddleware, requireRole('admin'), updateContactMessage);
+app.post('/api/admin/contacts/:id/respond', strictAuthMiddleware, requireRole('admin'), sendEmailResponse);
+app.delete('/api/admin/contacts/:id', strictAuthMiddleware, requireRole('admin'), deleteContactMessage);
 
 // Test email endpoint 
 app.post('/api/test-email', async (req, res) => {

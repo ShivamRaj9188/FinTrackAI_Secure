@@ -1,31 +1,88 @@
 import React from 'react';
 
 const features = [
-  { title: 'Smart Categorization', description: 'Automatically classify your spending using AI for better budgeting.', icon: 'fas fa-tags', color: 'bg-blue-100 text-blue-600' },
-  { title: 'Expense Insights', description: 'Get monthly insights and patterns on where your money goes.', icon: 'fas fa-chart-pie', color: 'bg-green-100 text-green-600' },
-  { title: 'Secure Syncing', description: 'Sync your bank accounts securely with end-to-end encryption.', icon: 'fas fa-shield-alt', color: 'bg-purple-100 text-purple-600' },
-  { title: 'Custom Alerts', description: 'Set limits and receive alerts for overspending.', icon: 'fas fa-bell', color: 'bg-yellow-100 text-yellow-600' },
-  { title: 'Multi-account Support', description: 'Track all your accounts in one place with real-time updates.', icon: 'fas fa-university', color: 'bg-indigo-100 text-indigo-600' },
-  { title: 'Downloadable Reports', description: 'Export insights and summaries to Excel or PDF format.', icon: 'fas fa-file-download', color: 'bg-red-100 text-red-600' },
+  {
+    title: 'AI Categorization',
+    description: 'Neural AI auto-classifies every transaction into meaningful spending categories.',
+    icon: 'fa-wand-magic-sparkles',
+    accent: 'from-blue-500 to-cyan-400',
+  },
+  {
+    title: 'Spending Insights',
+    description: 'Get monthly patterns, anomaly detection, and personalized budget recommendations.',
+    icon: 'fa-chart-pie',
+    accent: 'from-emerald-500 to-green-400',
+  },
+  {
+    title: 'Bank-Grade Security',
+    description: 'End-to-end encryption, JWT auth, rate limiting, and input sanitization on every request.',
+    icon: 'fa-shield-halved',
+    accent: 'from-purple-500 to-violet-400',
+  },
+  {
+    title: 'Smart Alerts',
+    description: 'Real-time notifications when spending spikes in a category beyond your set threshold.',
+    icon: 'fa-bell',
+    accent: 'from-amber-500 to-yellow-400',
+  },
+  {
+    title: 'Multi-Format Upload',
+    description: 'Upload bank statements in PDF or CSV. Our parser handles major bank formats automatically.',
+    icon: 'fa-cloud-arrow-up',
+    accent: 'from-rose-500 to-pink-400',
+  },
+  {
+    title: 'Exportable Reports',
+    description: 'Download your financial analysis as CSV or print-ready PDF for tax and audit purposes.',
+    icon: 'fa-file-export',
+    accent: 'from-indigo-500 to-blue-400',
+  },
 ];
 
 const Features = () => (
-  <section id="features" className="py-20">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Powerful Features for Complete Financial Control</h2>
-        <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-          From AI-powered categorization to detailed insights, everything you need to take control of your finances.
+  <section id="features" className="py-28 bg-[#0A0A0A] relative overflow-hidden">
+    {/* Subtle bg glow */}
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--accent-primary)] opacity-[0.03] blur-[200px] rounded-full"></div>
+
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      {/* Section Header */}
+      <div className="text-center mb-20 animate-fade-in-up">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/[0.06] rounded-full mb-6">
+          <span className="text-[10px] font-semibold tracking-wider text-[#666]">PLATFORM CAPABILITIES</span>
+        </div>
+        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-5">
+          Everything You Need to{' '}
+          <span className="gradient-text">Master Your Money</span>
+        </h2>
+        <p className="text-lg text-[#666] max-w-2xl mx-auto leading-relaxed">
+          Professional financial tools powered by neural intelligence. From automatic categorization to AI-driven recommendations.
         </p>
       </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+      {/* Feature Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
         {features.map((f, i) => (
-          <div key={i} className="bg-white rounded-lg p-8 hover:shadow-xl transition-shadow">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-6 ${f.color}`}>
-              <i className={`${f.icon} text-lg`}></i>
+          <div
+            key={i}
+            className="group cashmate-card hover:border-white/10 relative overflow-hidden animate-fade-in-up"
+            style={{ animationDelay: `${i * 80}ms` }}
+          >
+            {/* Hover gradient bg */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${f.accent} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500`}></div>
+
+            <div className="relative z-10">
+              {/* Icon */}
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-6 bg-white/[0.04] border border-white/[0.06] group-hover:border-white/10 transition-all">
+                <i className={`fas ${f.icon} text-base text-[var(--accent-primary)] group-hover:text-white transition-colors`}></i>
+              </div>
+
+              <h3 className="text-base font-bold text-white mb-3 tracking-wide">
+                {f.title}
+              </h3>
+              <p className="text-sm text-[#666] leading-relaxed">
+                {f.description}
+              </p>
             </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-4">{f.title}</h3>
-            <p className="text-slate-600">{f.description}</p>
           </div>
         ))}
       </div>

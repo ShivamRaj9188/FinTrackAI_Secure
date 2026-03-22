@@ -141,8 +141,10 @@ const Header = () => {
           {/* Hamburger (mobile) */}
           <button
             id="hamburger"
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 focus:outline-none"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+            aria-label="Toggle mobile menu"
+            aria-expanded={isMobileNavOpen}
           >
             <i className="fa-solid fa-bars text-2xl text-gray-700"></i>
           </button>

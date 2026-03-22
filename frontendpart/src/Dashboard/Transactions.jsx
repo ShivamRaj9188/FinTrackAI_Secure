@@ -1,100 +1,48 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Header from './Header';
-import Footer from '../components/Footer';
-import { getTransactions, addTransaction } from '../api';
 
 const Transactions = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All Categories');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
-  const [category, setCategory] = useState('');
-  const [amount, setAmount] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTransactions, setTotalTransactions] = useState(0);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTx, setNewTx] = useState({ description: '', amount: '', type: 'debit', category: 'Other' });
+  const [addingTx, setAddingTx] = useState(false);
   const itemsPerPage = 10;
 
-  // Function to determine category based on description
-  const getCategoryFromDescription = (description) => {
-    const desc = description.toLowerCase();
-    
-    if (desc.includes('salary')) return "Income";
-    if (desc.includes('deposit') || desc.includes('transfer from') || desc.includes('cheque')) return "Income";
-    if (desc.includes('atm') || desc.includes('withdrawal')) return "Cash";
-    if (desc.includes('rent') || desc.includes('housing')) return "Housing";
-    if (desc.includes('bazaar') || desc.includes('grocery')) return "Food & Dining";
-    if (desc.includes('zomato') || desc.includes('swiggy')) return "Food & Dining";
-    if (desc.includes('jio') || desc.includes('recharge')) return "Utilities";
-    if (desc.includes('power') || desc.includes('bill')) return "Utilities";
-    if (desc.includes('card payment')) return "Credit Card";
-    if (desc.includes('upi') || desc.includes('amazon')) return "Shopping";
-    
-    return "Other";
-  };
-
-  // Load transactions from API
   const loadTransactions = async (page = 1) => {
     try {
       setLoading(true);
-      
-      // Fetch transactions from the transactions endpoint (user-filtered)
       const token = localStorage.getItem('authToken');
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: itemsPerPage.toString(),
         ...(categoryFilter !== 'All Categories' && { category: categoryFilter })
       });
-      
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/transactions?${queryParams}`, {
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/transactions?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          // Transform the data to match the expected format
-          const formattedTransactions = (data.transactions || []).map(tx => ({
-            id: tx._id,
-            desc: tx.description,
-            date: new Date(tx.date).toLocaleDateString(),
-            category: tx.category || getCategoryFromDescription(tx.description),
-            amount: tx.amount,
-            type: tx.type // 'debit' or 'credit'
-          }));
-          
-          setTransactions(formattedTransactions);
-          setTotalTransactions(data.total || 0);
-          setTotalPages(data.pagination?.totalPages || 1);
-          setCurrentPage(data.pagination?.currentPage || 1);
-          
-          if (formattedTransactions.length === 0 && page === 1) {
-            setError('No transactions found. Upload a bank statement to get started!');
-          } else {
-            setError('');
-          }
-        } else {
-          setError(data.message || 'Failed to load transactions');
-          setTransactions([]);
-        }
-    } catch (err) {
-      console.error('Transactions loading error:', err);
-      if (err.message.includes('401') || err.message.includes('Unauthorized')) {
-        setError('Please log in to view your transactions');
-        localStorage.removeItem('authToken');
-        window.location.href = '/login';
+
+      const data = await response.json();
+
+      if (data.success) {
+        setTransactions(data.transactions || []);
+        setTotalTransactions(data.total || 0);
+        setTotalPages(data.pagination?.totalPages || 1);
+        setCurrentPage(data.pagination?.currentPage || 1);
       } else {
-        setError('Failed to load transactions. Please try again later.');
+        setError(data.message || 'Failed to load transactions');
       }
-      setTransactions([]);
+    } catch (err) {
+      setError('Failed to connect to server');
     } finally {
       setLoading(false);
     }
@@ -104,267 +52,208 @@ const Transactions = () => {
     loadTransactions(currentPage);
   }, [currentPage, categoryFilter]);
 
-  const categoryColors = {
-    "Food & Dining": "bg-green-100 text-green-800",
-    "Transportation": "bg-blue-100 text-blue-800",
-    "Income": "bg-green-100 text-green-800",
-    "Entertainment": "bg-purple-100 text-purple-800",
-    "Utilities": "bg-yellow-100 text-yellow-800",
-    "Housing": "bg-pink-100 text-pink-800",
-    "Shopping": "bg-blue-100 text-blue-800",
-    "Cash": "bg-gray-100 text-gray-800",
-    "Credit Card": "bg-red-100 text-red-800",
-    "Other": "bg-gray-100 text-gray-800",
-  };
-
-  const getIndicatorColor = (category) => {
-    const colorClass = categoryColors[category] || "bg-gray-100 text-gray-800";
-    return colorClass.includes("green") ? "bg-green-500" :
-           colorClass.includes("blue") ? "bg-blue-500" :
-           colorClass.includes("purple") ? "bg-purple-500" :
-           colorClass.includes("yellow") ? "bg-yellow-500" :
-           colorClass.includes("pink") ? "bg-pink-500" :
-           colorClass.includes("red") ? "bg-red-500" :
-           "bg-gray-500";
-  };
-
-  const handleAddTransaction = async () => {
+  const handleAddTransaction = async (e) => {
+    e.preventDefault();
+    setAddingTx(true);
     try {
-      if (!description || !date || !category || !amount) {
-        setError('Please fill in all fields');
-        return;
-      }
-
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/transactions`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/transactions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          description,
-          date,
-          category,
-          amount: parseFloat(amount),
-          type: parseFloat(amount) > 0 ? 'credit' : 'debit'
+          description: newTx.description,
+          amount: parseFloat(newTx.amount),
+          type: newTx.type,
+          category: newTx.category,
+          date: new Date().toISOString()
         })
       });
-
       const data = await response.json();
-      
       if (data.success) {
-        // Reload transactions to show the new one
-        window.location.reload();
+        setShowAddForm(false);
+        setNewTx({ description: '', amount: '', type: 'debit', category: 'Other' });
+        loadTransactions(currentPage);
       } else {
         setError(data.message || 'Failed to add transaction');
       }
     } catch (err) {
-      console.error('Add transaction error:', err);
       setError('Failed to add transaction');
+    } finally {
+      setAddingTx(false);
     }
-    
-    setIsModalOpen(false);
-    setDescription('');
-    setDate('');
-    setCategory('');
-    setAmount('');
   };
 
   const filteredTransactions = transactions.filter(tx =>
-    tx.desc.toLowerCase().includes(searchTerm.toLowerCase())
+    tx.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
   return (
-    <div className="bg-gray-50 font-inter">
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Transactions</h1>
-              <p className="text-gray-600 text-sm mt-1">Manage and track all your financial transactions</p>
-            </div>
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              onClick={() => setIsModalOpen(true)}
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Transactions</h1>
+          <p className="text-sm text-[#555] mt-1">{totalTransactions} total records</p>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="btn-accent px-5 py-2.5 rounded-xl text-[13px]"
+        >
+          <i className="fas fa-plus text-xs"></i>
+          {showAddForm ? 'CANCEL' : 'ADD TRANSACTION'}
+        </button>
+      </div>
+
+      {/* Add Transaction Form */}
+      {showAddForm && (
+        <form onSubmit={handleAddTransaction} className="cashmate-card animate-slide-down">
+          <h3 className="text-sm font-bold text-white mb-4">New Transaction</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input
+              type="text"
+              placeholder="Description"
+              required
+              className="input-field"
+              value={newTx.description}
+              onChange={(e) => setNewTx({...newTx, description: e.target.value})}
+            />
+            <input
+              type="number"
+              placeholder="Amount (₹)"
+              required
+              min="1"
+              className="input-field"
+              value={newTx.amount}
+              onChange={(e) => setNewTx({...newTx, amount: e.target.value})}
+            />
+            <select
+              className="input-field cursor-pointer"
+              value={newTx.type}
+              onChange={(e) => setNewTx({...newTx, type: e.target.value})}
             >
-              Add Transaction
+              <option value="debit">Expense (Debit)</option>
+              <option value="credit">Income (Credit)</option>
+            </select>
+            <button
+              type="submit"
+              disabled={addingTx}
+              className="btn-primary justify-center rounded-xl disabled:opacity-50"
+            >
+              {addingTx ? 'Adding...' : 'Add'}
             </button>
           </div>
+        </form>
+      )}
 
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Filters */}
+      <div className="cashmate-card">
+        <div className="flex flex-col md:flex-row gap-3 mb-6">
+          <div className="flex-1 relative">
+            <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-[#333] text-sm"></i>
             <input
               type="text"
               placeholder="Search transactions..."
-              className="flex-1 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input-field pl-11"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <select
-              className="sm:w-64 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option>All Categories</option>
-              <option>Food & Dining</option>
-              <option>Transportation</option>
-              <option>Income</option>
-              <option>Entertainment</option>
-              <option>Utilities</option>
-              <option>Housing</option>
-              <option>Shopping</option>
-              <option>Cash</option>
-              <option>Credit Card</option>
-              <option>Other</option>
-            </select>
           </div>
+          <select
+            className="input-field w-auto min-w-[180px] cursor-pointer"
+            value={categoryFilter}
+            onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
+          >
+            <option>All Categories</option>
+            <option>Food & Dining</option>
+            <option>Transportation</option>
+            <option>Income</option>
+            <option>Entertainment</option>
+            <option>Utilities</option>
+            <option>Housing</option>
+            <option>Shopping</option>
+          </select>
+        </div>
 
-          {loading ? (
-            <div className="text-center py-8">Loading transactions...</div>
-          ) : error ? (
-            <div className="text-center text-red-600 py-8">{error}</div>
-          ) : filteredTransactions.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">No transactions found.</p>
-              <p className="text-sm text-gray-500">Upload a bank statement or add transactions manually to get started.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+        {/* Error */}
+        {error && (
+          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 p-3 rounded-xl mb-4 animate-fade-in">
+            <i className="fas fa-exclamation-circle text-red-400 text-sm"></i>
+            <span className="text-red-400 text-sm">{error}</span>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="space-y-3">
+            {[1,2,3,4,5].map(i => <div key={i} className="h-14 skeleton rounded-xl"></div>)}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-separate border-spacing-y-1.5">
+              <thead>
+                <tr className="text-[10px] font-bold text-[#444] tracking-widest uppercase">
+                  <th className="px-4 py-2 text-left">Date</th>
+                  <th className="px-4 py-2 text-left">Description</th>
+                  <th className="px-4 py-2 text-left">Category</th>
+                  <th className="px-4 py-2 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransactions.map((tx, index) => (
+                  <tr key={index} className="group">
+                    <td className="bg-white/[0.02] px-4 py-3.5 rounded-l-xl text-xs font-medium text-[#555]">
+                      {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="bg-white/[0.02] px-4 py-3.5 text-sm font-semibold text-white group-hover:text-[var(--accent-primary)] transition-colors">
+                      {tx.description}
+                    </td>
+                    <td className="bg-white/[0.02] px-4 py-3.5">
+                      <span className="badge badge-neutral text-[9px]">
+                        {tx.category || 'General'}
+                      </span>
+                    </td>
+                    <td className="bg-white/[0.02] px-4 py-3.5 rounded-r-xl text-right">
+                      <span className={`text-sm font-bold ${tx.type === 'credit' ? 'text-[var(--accent-secondary)]' : 'text-white'}`}>
+                        {tx.type === 'debit' ? '-' : '+'}₹{tx.amount.toLocaleString()}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredTransactions.map((tx, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="px-4 py-2 text-sm">{tx.date}</td>
-                      <td className="px-4 py-2 text-sm flex items-center">
-                        <span className={`w-2 h-2 ${getIndicatorColor(tx.category)} rounded-full mr-2`}></span>
-                        {tx.desc}
-                      </td>
-                      <td className="px-4 py-2 text-sm">
-                        <span className={`px-2 py-1 ${categoryColors[tx.category] || "bg-gray-100 text-gray-800"} rounded`}>{tx.category}</span>
-                      </td>
-                      <td className="px-4 py-2 text-sm">
-                        <span className={tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}>
-                          {tx.type === 'credit' ? '+' : '-'}₹{Number(tx.amount).toFixed(2)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+              </tbody>
+            </table>
 
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-6 gap-4">
-            <div className="text-sm text-gray-600">
-              Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalTransactions)} of {totalTransactions} transactions
-            </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={handlePrevPage}
-                disabled={currentPage <= 1}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  currentPage <= 1 
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Previous
-              </button>
-              <span className="px-4 py-2 text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button 
-                onClick={handleNextPage}
-                disabled={currentPage >= totalPages}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  currentPage >= totalPages 
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Next
-              </button>
-            </div>
+            {filteredTransactions.length === 0 && !loading && (
+              <div className="text-center py-16">
+                <i className="fas fa-receipt text-3xl text-[#222] mb-3 block"></i>
+                <p className="text-sm text-[#444]">No transactions found</p>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Modal */}
-        <div
-          id="addTransactionModal"
-          className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ${isModalOpen ? '' : 'hidden'}`}
-        >
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl relative">
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-6 pt-5 border-t border-white/[0.04]">
+          <p className="text-xs text-[#444] font-medium">Page {currentPage} of {totalPages}</p>
+          <div className="flex gap-2">
             <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl"
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/[0.06] text-[#555] hover:text-white disabled:opacity-20 transition-all"
             >
-              ×
+              <i className="fas fa-chevron-left text-xs"></i>
             </button>
-            <h2 className="text-lg font-semibold mb-4">Add Transaction</h2>
-            <div className="space-y-4">
-              <input
-                id="desc"
-                type="text"
-                placeholder="Description"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-              <input
-                id="date"
-                type="date"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-              <input
-                id="category"
-                type="text"
-                placeholder="Category"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-              <input
-                id="amount"
-                type="number"
-                placeholder="Amount (₹)"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
             <button
-              className="mt-6 w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
-              onClick={handleAddTransaction}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/[0.06] text-[#555] hover:text-white disabled:opacity-20 transition-all"
             >
-              Add Transaction
+              <i className="fas fa-chevron-right text-xs"></i>
             </button>
           </div>
         </div>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 };

@@ -43,14 +43,15 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Create login token
+    // Create login token with role for RBAC
     const { getJwtSecret } = require('../utils/secretHelper');
     const token = jwt.sign({
       id: user._id,
       userId: user._id,
-      email: user.email
+      email: user.email,
+      role: user.role || 'user'
     }, getJwtSecret(), {
-      expiresIn: process.env.JWT_EXPIRE || '7d'
+      expiresIn: process.env.JWT_EXPIRE || '1d'
     });
 
     // Send success response

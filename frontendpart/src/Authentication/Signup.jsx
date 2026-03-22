@@ -1,193 +1,247 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import loginImage from '../assets/images/login.jpg';
 import { register } from '../api';
 
 const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) navigate('/dashboard');
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
-    if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
-
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
-      return;
-    }
-
     setLoading(true);
-    
+    setError('');
     try {
-      const result = await register({ 
-        name, 
-        email, 
-        password 
-      });
-      
-      if (result.success) {
-        // Store auth token
+      const result = await register({ name, email, password });
+      if (result.success || result.token) {
         localStorage.setItem('authToken', result.token);
-        localStorage.setItem('userEmail', email);
-        
-        // Store user info for immediate access
-        if (result.user) {
-          localStorage.setItem('userInfo', JSON.stringify({
-            name: result.user.name || name,
-            email: result.user.email || email
-          }));
-        }
-        
-        // Dispatch custom event to notify Header component
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('userLogin'));
-        }, 100);
-        
-        // Redirect to dashboard
+        localStorage.setItem('userInfo', JSON.stringify(result.user));
         navigate('/dashboard');
       } else {
-        setError(result.message || 'Registration failed. Please try again.');
+        setError(result.message || 'Registration failed');
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      setError(err.message || 'Registration failed. Please try again.');
+      setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-gray-100">
-      <Header />
-      <div className="py-6">
-        <div className="text-center text-white">
-          <h1 className="text-3xl text-blue-600 font-bold">Sign Up</h1>
-          <p className="text-sm mt-2 text-blue-500">Home &gt; Sign Up</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-[1000px] grid grid-cols-1 lg:grid-cols-2 bg-[var(--bg-secondary)] rounded-3xl overflow-hidden border border-white/[0.06] shadow-2xl animate-scale-in">
 
-      <div className="flex justify-center mt-10 px-4">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden flex max-w-4xl w-full">
-          <div className="hidden md:block w-1/2">
-            <img src={loginImage} alt="Laptop" className="h-full w-full object-cover" />
+        {/* Left — Visual Panel */}
+        <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-[#111] to-[#0A0A0A] border-r border-white/5 relative overflow-hidden">
+          <div className="relative z-10">
+            <Link to="/" className="flex items-center gap-2.5 mb-12">
+              <div className="w-9 h-9 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-xl flex items-center justify-center">
+                <span className="text-black font-black text-sm">F</span>
+              </div>
+              <span className="text-lg font-extrabold text-white">FinTrackAI</span>
+            </Link>
+
+            <h2 className="text-3xl font-black text-white leading-snug mb-4">
+              Start mastering<br />
+              <span className="gradient-text">your finances.</span>
+            </h2>
+            <p className="text-sm text-[#555] max-w-[260px]">
+              Join 50,000+ users who save more with AI-powered financial intelligence.
+            </p>
           </div>
 
-          <div className="w-full md:w-1/2 p-8">
-            {error && (
-              <div className="error-message bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <strong>Error:</strong> {error}
+          {/* Mini Chart Visual */}
+          <div className="relative z-10 my-8">
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-[10px] font-bold text-[#444] tracking-widest uppercase">Savings Growth</span>
+                <span className="text-xs font-bold text-emerald-400">+28%</span>
               </div>
-            )}
-            <form id="loginForm" onSubmit={handleSubmit}>
+              <style>{`
+                @keyframes signupBarGrow {
+                  from { transform: scaleY(0); }
+                  to { transform: scaleY(1); }
+                }
+              `}</style>
+              <div className="flex items-end gap-2 h-20">
+                {[25, 40, 35, 55, 50, 70, 85].map((h, i) => (
+                  <div key={i} className="flex-1 bg-white/[0.04] rounded-md overflow-hidden relative" style={{ height: '100%' }}>
+                    <div
+                      className="absolute bottom-0 left-0 w-full rounded-md"
+                      style={{
+                        height: `${h}%`,
+                        background: 'linear-gradient(to top, #10b981, #00d1ff)',
+                        opacity: 0.65,
+                        transformOrigin: 'bottom',
+                        animation: `signupBarGrow 0.8s ease-out ${0.3 + i * 0.08}s both`
+                      }}
+                    ></div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between mt-2">
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'].map((m, i) => (
+                  <span key={i} className="flex-1 text-center text-[7px] font-bold text-[#333]">{m}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="relative z-10 pt-6 border-t border-white/5">
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { label: 'ACTIVE USERS', val: '50K+' },
+                { label: 'AI ACCURACY', val: '99.9%' },
+              ].map(s => (
+                <div key={s.label} className="bg-white/[0.03] border border-white/[0.06] p-4 rounded-xl">
+                  <p className="text-[9px] font-bold text-[#444] tracking-widest">{s.label}</p>
+                  <p className="text-xl font-black text-white mt-1">{s.val}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Decorative */}
+          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[var(--accent-secondary)] opacity-[0.05] blur-[120px]"></div>
+        </div>
+
+        {/* Right — Form */}
+        <div className="p-8 lg:p-12 flex flex-col justify-center">
+          {/* Mobile Logo */}
+          <div className="mb-8 lg:hidden">
+            <Link to="/" className="flex items-center gap-2.5">
+              <div className="w-9 h-9 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-xl flex items-center justify-center">
+                <span className="text-black font-black text-sm">F</span>
+              </div>
+              <span className="text-lg font-extrabold text-white">FinTrackAI</span>
+            </Link>
+          </div>
+
+          <h2 className="text-2xl font-bold text-white mb-1">Create Account</h2>
+          <p className="text-sm text-[#555] mb-8">Start your financial journey with FinTrackAI</p>
+
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-6 animate-fade-in">
+              <i className="fas fa-exclamation-circle text-red-400 text-sm"></i>
+              <span className="text-red-400 text-sm font-medium">{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name */}
+            <div>
+              <label className="section-label block mb-2">Full Name</label>
               <input
-                id="name"
+                id="signup-name"
                 type="text"
-                placeholder="Name"
-                className="w-full mb-4 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                className="input-field w-full"
+                placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
               />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="section-label block mb-2">Email Address</label>
               <input
-                id="email"
+                id="signup-email"
                 type="email"
-                placeholder="Email"
-                className="w-full mb-4 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                className="input-field w-full"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
               />
+            </div>
 
-              <div className="relative mb-4">
+            {/* Password */}
+            <div>
+              <label className="section-label block mb-2">Password</label>
+              <div className="relative">
                 <input
-                  id="password"
+                  id="signup-password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  minLength={8}
+                  className="input-field w-full pr-12"
+                  placeholder="Min. 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
-                  id="togglePassword"
-                  className="absolute right-2 top-2 text-gray-500"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#555] hover:text-white transition-colors"
+                  aria-label="Toggle password visibility"
                 >
-                  <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                  <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} text-sm`}></i>
                 </button>
               </div>
+              <p className="text-[10px] text-[#333] mt-1.5 font-medium">Must contain at least 8 characters</p>
+            </div>
 
-              <div className="relative mb-4">
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirm Password"
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  id="toggleConfirmPassword"
-                  className="absolute right-2 top-2 text-gray-500"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  <i className={`fas ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                </button>
-              </div>
+            {/* Submit */}
+            <button
+              id="signup-submit"
+              type="submit"
+              disabled={loading}
+              className="w-full btn-primary justify-center py-4 rounded-2xl text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <i className="fas fa-spinner fa-spin text-xs"></i>
+                  CREATING ACCOUNT...
+                </span>
+              ) : 'CREATE ACCOUNT'}
+            </button>
+          </form>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Creating Account...' : 'Sign Up'}
-              </button>
-            </form>
+          {/* Divider */}
+          <div className="mt-8 pt-6 border-t border-white/5">
+            <div className="flex items-center gap-4 mb-5">
+              <div className="flex-1 h-px bg-white/5"></div>
+              <span className="text-[10px] font-bold text-[#333] tracking-widest">OR CONTINUE WITH</span>
+              <div className="flex-1 h-px bg-white/5"></div>
+            </div>
 
-            <p className="text-sm mt-4 text-center">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-600">
-                Sign In?
-              </Link>{' '}
-              <Link to="/admin" className="text-blue-600 ml-2">
-                Admin
-              </Link>
-            </p>
-
-
+            <a
+              href={`${import.meta.env.VITE_API_URL}/auth/google`}
+              className="w-full flex items-center justify-center gap-3 bg-white/[0.03] border border-white/[0.06] py-3.5 rounded-2xl text-sm font-semibold text-[#888] hover:bg-white/[0.06] hover:text-white transition-all"
+            >
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
+              Google Account
+            </a>
           </div>
+
+          <p className="mt-8 text-center text-sm text-[#444]">
+            Already have an account?{' '}
+            <Link to="/login" className="text-white font-semibold hover:underline">
+              Sign in
+            </Link>
+          </p>
         </div>
       </div>
-      <div id="footer"></div>
-      <Footer />
     </div>
   );
 };

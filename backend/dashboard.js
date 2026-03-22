@@ -1,5 +1,6 @@
-// Dashboard Controller - Simple user dashboard data
+// Dashboard Controller - Real user dashboard data from MongoDB
 const User = require('./authentication/User');
+const Transaction = require('./models/Transaction');
 const jwt = require('jsonwebtoken');
 
 // Middleware to verify JWT token
@@ -20,10 +21,10 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Get user dashboard data
+// Get user dashboard data — computed from REAL transaction data
 const getDashboardData = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user._id || req.user.userId;
 
     // Get user info
     const user = await User.findById(userId).select('-password');
@@ -31,38 +32,71 @@ const getDashboardData = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // For now, we'll send basic user data and some sample dashboard stats
+    // Fetch real transactions from the database
+    const transactions = await Transaction.find({ user: userId }).sort({ date: -1 });
+
+    // Calculate real stats
+    let totalIncome = 0;
+    let totalExpense = 0;
+    const categorySpending = {};
+    const monthlyData = {};
+
+    transactions.forEach(tx => {
+      const amount = parseFloat(tx.amount) || 0;
+      if (tx.type === 'credit') {
+        totalIncome += amount;
+      } else {
+        totalExpense += amount;
+        // Track by category
+        const cat = tx.category || 'Other';
+        categorySpending[cat] = (categorySpending[cat] || 0) + amount;
+      }
+      // Track monthly 
+      const monthKey = tx.date ? new Date(tx.date).toISOString().substring(0, 7) : 'unknown';
+      if (!monthlyData[monthKey]) monthlyData[monthKey] = { income: 0, expense: 0 };
+      if (tx.type === 'credit') monthlyData[monthKey].income += amount;
+      else monthlyData[monthKey].expense += amount;
+    });
+
+    // Get recent transactions (last 10)
+    const recentActivity = transactions.slice(0, 10).map(tx => ({
+      id: tx._id,
+      type: tx.type === 'credit' ? 'income' : 'expense',
+      amount: tx.amount,
+      description: tx.description,
+      category: tx.category || 'Other',
+      date: tx.date
+    }));
+
+    // Top spending categories
+    const topCategories = Object.entries(categorySpending)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, amount]) => ({
+        name,
+        amount,
+        percentage: totalExpense > 0 ? ((amount / totalExpense) * 100).toFixed(1) : 0
+      }));
 
     const dashboardData = {
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        plan: user.plan || 'Basic'
       },
       stats: {
-        totalTransactions: 0,
-        totalBalance: 0,
-        monthlySpending: 0,
-        savingsGoal: 0
+        totalTransactions: transactions.length,
+        totalBalance: totalIncome - totalExpense,
+        totalIncome,
+        totalExpense,
+        monthlySpending: totalExpense,
+        savingsRate: totalIncome > 0 ? (((totalIncome - totalExpense) / totalIncome) * 100).toFixed(1) : 0
       },
-      recentActivity: [
-
-        {
-          id: 1,
-          type: 'income',
-          amount: 2500,
-          description: 'Salary',
-          date: new Date().toISOString()
-        },
-        {
-          id: 2,
-          type: 'expense',
-          amount: 150,
-          description: 'Groceries',
-          date: new Date().toISOString()
-        }
-      ]
+      topCategories,
+      monthlyData,
+      recentActivity
     };
 
     res.json({
@@ -82,7 +116,6 @@ const updateProfile = async (req, res) => {
     const userId = req.user.id;
     const { name, email } = req.body;
 
-    // Update user info
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { name, email },

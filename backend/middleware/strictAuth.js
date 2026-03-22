@@ -1,18 +1,21 @@
 const jwt = require('jsonwebtoken');
 const User = require('../authentication/User');
 
-// Strict authentication middleware for payment endpoints
+/**
+ * Strict authentication middleware
+ * - Verifies JWT token
+ * - Checks user exists in DB
+ * - Checks user account is active
+ * - Populates req.user with full user info including role
+ */
 const strictAuthMiddleware = async (req, res, next) => {
   try {
-    console.log('=== STRICT AUTH CHECK ===');
-
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      console.log('BLOCKED: No token provided');
       return res.status(401).json({
         success: false,
-        message: 'AUTHENTICATION REQUIRED: No token provided'
+        message: 'Authentication required: No token provided'
       });
     }
 
@@ -22,35 +25,30 @@ const strictAuthMiddleware = async (req, res, next) => {
       const { getJwtSecret } = require('../utils/secretHelper');
       decoded = jwt.verify(token, getJwtSecret());
     } catch (error) {
-      console.log('BLOCKED: Invalid token');
       return res.status(401).json({
         success: false,
-        message: 'AUTHENTICATION REQUIRED: Invalid token'
+        message: 'Authentication required: Invalid or expired token'
       });
     }
 
     // Check if user exists in database
     const user = await User.findById(decoded.id || decoded._id || decoded.userId);
     if (!user) {
-      console.log('BLOCKED: User not found in database');
       return res.status(401).json({
         success: false,
-        message: 'AUTHENTICATION REQUIRED: User not found'
+        message: 'Authentication required: User not found'
       });
     }
 
     // Check if user is active
     if (user.status === 'Inactive') {
-      console.log('BLOCKED: User account is inactive');
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
-        message: 'AUTHENTICATION REQUIRED: Account is inactive'
+        message: 'Account is deactivated. Contact support to reactivate.'
       });
     }
 
-    console.log('AUTH SUCCESS: User authenticated -', user.email);
-
-    // Set user info for next middleware
+    // Set user info for downstream handlers
     req.user = {
       id: user._id,
       _id: user._id,
@@ -61,16 +59,38 @@ const strictAuthMiddleware = async (req, res, next) => {
       role: user.role || 'user'
     };
 
-    console.log('User set in req.user:', req.user.email, 'Plan:', req.user.plan);
-
     next();
   } catch (error) {
-    console.error('STRICT AUTH ERROR:', error);
     return res.status(401).json({
       success: false,
-      message: 'AUTHENTICATION REQUIRED: Server error'
+      message: 'Authentication failed'
     });
   }
 };
 
+/**
+ * Role-based access control middleware factory
+ * Usage: requireRole('admin') or requireRole('admin', 'moderator')
+ */
+const requireRole = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Access denied. Required role: ${roles.join(' or ')}`
+      });
+    }
+
+    next();
+  };
+};
+
 module.exports = strictAuthMiddleware;
+module.exports.requireRole = requireRole;

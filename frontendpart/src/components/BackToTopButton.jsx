@@ -4,48 +4,31 @@ import { scrollToTop } from '../utils/smoothScroll';
 const BackToTopButton = () => {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Show button when page is scrolled up to given distance
   const toggleVisibility = () => {
-    if (window.pageYOffset > 300) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
+    setIsVisible(window.pageYOffset > 300);
   };
 
   useEffect(() => {
-    window.addEventListener('scroll', toggleVisibility);
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
-  const handleScrollToTop = () => {
-    scrollToTop('smooth');
-  };
-
   return (
-    <>
-      {isVisible && (
-        <button
-          onClick={handleScrollToTop}
-          className="fixed bottom-8 right-8 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          aria-label="Scroll to top"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 10l7-7m0 0l7 7m-7-7v18"
-            />
-          </svg>
-        </button>
-      )}
-    </>
+    <button
+      onClick={() => scrollToTop('smooth')}
+      className={`fixed bottom-8 right-8 z-50 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 border backdrop-blur-md ${
+        isVisible
+          ? 'opacity-100 translate-y-0 pointer-events-auto'
+          : 'opacity-0 translate-y-4 pointer-events-none'
+      }`}
+      style={{
+        background: 'rgba(0, 209, 178, 0.12)',
+        borderColor: 'rgba(0, 209, 178, 0.2)',
+      }}
+      aria-label="Scroll to top"
+    >
+      <i className="fas fa-arrow-up text-xs" style={{ color: 'var(--accent-primary)' }}></i>
+    </button>
   );
 };
 

@@ -4,275 +4,124 @@ import Footer from './Footer';
 
 const About = () => {
   return (
-    <div className="bg-gray-50 font-inter">
+    <div className="bg-[#0A0A0A] text-white font-inter min-h-screen">
       <Header />
-      
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 via-white to-purple-50 py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6">
-              About <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">FinTrackAI</span>
+      <section className="py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+          <div className="animate-fade-in-up">
+            <h1 className="text-5xl md:text-8xl font-black mb-8 leading-tight tracking-tight uppercase">
+              The Evolution of <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]">FinTrackAI</span>
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Empowering individuals to take control of their financial future through AI-powered insights and smart tracking.
+            <p className="text-xl text-[#666] max-w-3xl mx-auto leading-relaxed font-medium">
+              We're building the first neural-native financial platform. For those who demand precision, speed, and absolute control.
             </p>
           </div>
         </div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-[var(--accent-primary)]/5 to-transparent pointer-events-none"></div>
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-                Our Mission
-              </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                At FinTrackAI, we believe that everyone deserves access to intelligent financial management tools. 
-                Our mission is to democratize financial literacy and empower individuals to make informed decisions 
-                about their money through cutting-edge AI technology.
+      <section className="py-24 border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <div className="animate-fade-in-left">
+              <h2 className="text-xs font-black text-[var(--accent-secondary)] tracking-[0.4em] uppercase mb-8">OUR CORE PROTOCOL</h2>
+              <p className="text-3xl font-black mb-8 leading-tight uppercase">DEMOCRATIZING INTELLIGENCE.</p>
+              <p className="text-[#666] font-medium leading-relaxed mb-6">
+                At FinTrackAI, we believe that high-end financial management tools shouldn't be reserved for the elite.
+                Our mission is to bake professional-grade intelligence into every user's workflow.
               </p>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                We're committed to providing transparent, secure, and user-friendly solutions that help you 
-                understand your spending patterns, optimize your savings, and achieve your financial goals.
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl sm:text-4xl font-bold text-blue-600 mb-2">10K+</div>
-                  <div className="text-gray-600">Active Users</div>
+              <div className="flex gap-4">
+                <div className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl flex-1 text-center">
+                  <div className="text-2xl font-black text-white">10K+</div>
+                  <div className="text-[10px] font-black text-[#4D4D4D] tracking-widest uppercase mt-1">OPERATORS</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl sm:text-4xl font-bold text-purple-600 mb-2">₹50Cr+</div>
-                  <div className="text-gray-600">Money Tracked</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl sm:text-4xl font-bold text-green-600 mb-2">95%</div>
-                  <div className="text-gray-600">Satisfaction Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl sm:text-4xl font-bold text-orange-600 mb-2">24/7</div>
-                  <div className="text-gray-600">AI Support</div>
+                <div className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl flex-1 text-center">
+                  <div className="text-2xl font-black text-white">₹50Cr+</div>
+                  <div className="text-[10px] font-black text-[#4D4D4D] tracking-widest uppercase mt-1">VOLUME</div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Story Section */}
-      <section className="bg-white py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-              Our Story
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Founded in 2023 by a team of financial experts and AI engineers, FinTrackAI was born from a simple 
-              observation: personal finance management was unnecessarily complex and intimidating for most people.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-lightbulb text-2xl text-blue-600"></i>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">The Idea</h3>
-              <p className="text-gray-600">
-                We realized that traditional budgeting apps were static and didn't provide actionable insights. 
-                What if AI could analyze spending patterns and provide personalized recommendations?
+            <div className="cashmate-card relative overflow-hidden p-12 bg-white/5 border-white/10 animate-fade-in-right">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-primary)] opacity-10 blur-3xl"></div>
+              <p className="text-sm font-black text-white leading-loose italic">
+                "WE DON'T JUST TRACK SPENDING. WE AUGMENT HUMAN DECISION-MAKING WITH ARTIFICIAL PRECISION."
               </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-code text-2xl text-purple-600"></i>
+              <div className="mt-12 pt-8 border-t border-white/10 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black font-black">F</div>
+                <div>
+                  <p className="text-xs font-black uppercase text-white tracking-widest">SYSTEM CORE</p>
+                  <p className="text-[10px] font-bold text-[#4D4D4D]">EST. 2023</p>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Development</h3>
-              <p className="text-gray-600">
-                Our team spent months developing sophisticated machine learning algorithms that could understand 
-                spending behaviors and provide meaningful financial insights.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-rocket text-2xl text-green-600"></i>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Launch</h3>
-              <p className="text-gray-600">
-                Today, FinTrackAI helps thousands of users make smarter financial decisions with AI-powered 
-                insights, automated categorization, and predictive analytics.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Team Section */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-              Meet Our Development Team
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We're a passionate team of full-stack developers dedicated to building innovative financial 
-              technology solutions that make money management simple and accessible.
-            </p>
+      <section className="py-24 bg-[#080808]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-24">
+            <h2 className="text-xs font-black text-[var(--accent-primary)] tracking-[0.4em] uppercase mb-8">THE ARCHITECTS</h2>
+            <h3 className="text-4xl font-black text-white uppercase tracking-tight">THE DEVELOPMENT TEAM</h3>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">KA</span>
+
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-8">
+            {[
+              { name: "Kamal", init: "KA", color: "[var(--accent-primary)]" },
+              { name: "Shivam", init: "SH", color: "[var(--accent-secondary)]" },
+              { name: "Bhoomi", init: "BH", color: "green-400" },
+              { name: "Harshit", init: "HA", color: "orange-400" },
+              { name: "Varun", init: "VA", color: "indigo-400" }
+            ].map((user, idx) => (
+              <div key={idx} className="text-center group">
+                <div className={`w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-white/5 group-hover:border-${user.color} transition-all duration-500 scale-100 group-hover:scale-110 bg-[#111]`}>
+                  <span className="text-xl font-black text-white opacity-50 group-hover:opacity-100">{user.init}</span>
+                </div>
+                <h4 className="text-sm font-black text-white uppercase tracking-widest">{user.name}</h4>
+                <p className="text-[10px] font-bold text-[#4D4D4D] tracking-widest uppercase mt-2">FULL STACK</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">Kamal</h3>
-              <p className="text-blue-600 font-medium mb-2">Full Stack Developer</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">SH</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">Shivam</h3>
-              <p className="text-purple-600 font-medium mb-2">Full Stack Developer</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">BH</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">Bhoomi</h3>
-              <p className="text-green-600 font-medium mb-2">Full Stack Developer</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">HA</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">Harshit</h3>
-              <p className="text-orange-600 font-medium mb-2">Full Stack Developer</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">VA</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">Varun</h3>
-              <p className="text-indigo-600 font-medium mb-2">Full Stack Developer</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Values Section */}
-      <section className="bg-gray-900 text-white py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-              Our Values
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              These principles guide everything we do and shape how we build products for our users.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-shield-alt text-2xl text-white"></i>
+      <section className="py-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { title: "Security First", icon: "fa-shield-halved", text: "Encryption at the neural layer. Your data is protected by industry-leading protocols." },
+              { title: "Transparency", icon: "fa-eye", text: "Full disclosure on AI logic. We build trust through open execution and clear patterns." },
+              { title: "Universal", icon: "fa-users", text: "Built for everyone. From individual freelancers to scaling startups." }
+            ].map((value, idx) => (
+              <div key={idx} className="cashmate-card hover:bg-white/5 transition-all duration-500">
+                <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white mb-8 group-hover:bg-white group-hover:text-black transition-all">
+                  <i className={`fas ${value.icon} text-lg`}></i>
+                </div>
+                <h4 className="text-lg font-black text-white uppercase mb-4 tracking-wide">{value.title}</h4>
+                <p className="text-sm text-[#4D4D4D] font-medium leading-relaxed">{value.text}</p>
               </div>
-              <h3 className="text-xl font-semibold mb-3">Security First</h3>
-              <p className="text-gray-300">
-                Your financial data is encrypted and protected with bank-level security. We never store 
-                your banking credentials or sell your data.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-eye text-2xl text-white"></i>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Transparency</h3>
-              <p className="text-gray-300">
-                We believe in clear, honest communication about how our AI works, what data we use, 
-                and how we generate insights.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-heart text-2xl text-white"></i>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">User-Centric</h3>
-              <p className="text-gray-300">
-                Every feature we build is designed with our users in mind. We constantly gather feedback 
-                and iterate to improve your experience.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-graduation-cap text-2xl text-white"></i>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Education</h3>
-              <p className="text-gray-300">
-                We're committed to improving financial literacy through educational content, tips, 
-                and personalized guidance.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-bolt text-2xl text-white"></i>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Innovation</h3>
-              <p className="text-gray-300">
-                We're always exploring new ways to use AI and technology to solve financial challenges 
-                and improve user outcomes.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-users text-2xl text-white"></i>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Inclusivity</h3>
-              <p className="text-gray-300">
-                Financial wellness should be accessible to everyone, regardless of income level, 
-                background, or financial knowledge.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-16">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Financial Future?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of users who are already making smarter financial decisions with FinTrackAI.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/signup"
-              className="bg-white text-blue-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition duration-300 shadow-lg"
-            >
-              Get Started Free
+      <section className="py-24 bg-gradient-to-r from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10 border-t border-white/5">
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-8 uppercase tracking-tight">Ready to Evolve?</h2>
+          <p className="text-xl text-[#666] mb-12 font-medium">Join the next generation of financial operators.</p>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <a href="/signup" className="bg-white text-black px-12 py-5 rounded-2xl font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10 uppercase">
+              GET STARTED FREE
             </a>
-            <a
-              href="/contact"
-              className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-blue-600 transition duration-300"
-            >
-              Contact Us
+            <a href="/contact" className="bg-[#1A1A1A] text-white border border-white/10 px-12 py-5 rounded-2xl font-black text-sm hover:bg-[#252525] transition-all uppercase">
+              CONTACT CORE
             </a>
           </div>
         </div>

@@ -1,0 +1,19 @@
+date,description,amount,type,category
+2025-03-01,Monthly Salary,75000,credit,Income
+2025-03-02,Rent Payment,18000,debit,Housing
+2025-03-03,Swiggy Order,450,debit,Food & Dining
+2025-03-04,Uber Ride,320,debit,Transportation
+2025-03-05,Netflix Subscription,649,debit,Entertainment
+2025-03-06,Grocery Store,2200,debit,Food & Dining
+2025-03-07,Electricity Bill,1800,debit,Utilities
+2025-03-08,Amazon Shopping,3500,debit,Shopping
+2025-03-10,Zomato Order,380,debit,Food & Dining
+2025-03-12,Petrol Fill,1500,debit,Transportation
+2025-03-14,Freelance Payment,15000,credit,Income
+2025-03-15,Restaurant Dinner,1200,debit,Food & Dining
+2025-03-16,Mobile Recharge,599,debit,Utilities
+2025-03-18,Movie Tickets,800,debit,Entertainment
+2025-03-20,Gym Membership,2000,debit,Health
+2025-03-22,Online Course,4999,debit,Education
+2025-03-25,Spotify Premium,119,debit,Entertainment
+2025-03-28,Water Bill,200,debit,Utilities
