@@ -8,22 +8,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [googleEnabled, setGoogleEnabled] = useState(true);
   const navigate = useNavigate();
-
-  // Check if Google Auth is configured
-  useEffect(() => {
-    const checkGoogleStatus = async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/google/status`);
-        const data = await res.json();
-        setGoogleEnabled(data.enabled);
-      } catch (err) {
-        console.warn('Failed to check Google Auth status');
-      }
-    };
-    checkGoogleStatus();
-  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -226,18 +211,12 @@ const Login = () => {
             <button
               type="button"
               onClick={() => {
-                if (googleEnabled) {
-                  window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-                } else {
-                  setError('Google Login Setup Required: Please follow the instructions in the project dashboard to configure your Google API keys.');
-                }
+                window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
               }}
-              className={`w-full flex items-center justify-center gap-3 bg-white/[0.03] border border-white/[0.06] py-3.5 rounded-2xl text-sm font-semibold transition-all ${
-                googleEnabled ? 'text-[#888] hover:bg-white/[0.06] hover:text-white' : 'text-[#444] cursor-not-allowed opacity-60'
-              }`}
+              className="w-full flex items-center justify-center gap-3 bg-white/[0.03] border border-white/[0.06] py-3.5 rounded-2xl text-sm font-semibold transition-all text-[#888] hover:bg-white/[0.06] hover:text-white"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
-              {googleEnabled ? 'Google Account' : 'Google (Update Keys)'}
+              Google Account
             </button>
           </div>
 
