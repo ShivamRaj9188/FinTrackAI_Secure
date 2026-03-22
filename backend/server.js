@@ -113,6 +113,7 @@ const corsOptions = {
     const allowedOrigins = [
       process.env.FRONTEND_URL,
       process.env.CORS_ORIGIN,
+      'https://fin-track-ai-secure.vercel.app',
       'https://fintrackai-delta.vercel.app',
       'https://fintrackai-j3ldui64a-varunjoshi84s-projects.vercel.app',
       'https://fintrackai-git-main-varunjoshi84s-projects.vercel.app',

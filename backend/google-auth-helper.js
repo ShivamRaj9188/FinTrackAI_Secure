@@ -1,7 +1,7 @@
 // Google Auth Helper for Frontend Integration
 const handleGoogleAuth = () => {
   const backendUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://fintrackai.onrender.com' 
+    ? 'https://fintrackai-api.vercel.app' 
     : 'http://localhost:8000';
     
   // Open Google Auth popup

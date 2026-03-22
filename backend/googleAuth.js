@@ -3,12 +3,15 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 // Use the existing User model
 const User = require('./authentication/User');
 
-// Initialize Google Strategy - Dynamic for Vercel/Local
+// Initialize Google Strategy - use BACKEND_URL env var for flexibility
+// This ensures the callback URL always matches the actual deployment domain
 const getCallbackURL = () => {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/auth/google/callback`;
-  if (process.env.FRONTEND_URL && process.env.FRONTEND_URL.includes('vercel.app')) {
-     // If frontend is vercel, assume backend is too or at least use this base
-     return `${process.env.FRONTEND_URL.replace(/\/$/, '')}/api/auth/google/callback`;
+  if (process.env.NODE_ENV === 'production') {
+    // Use BACKEND_URL env var if set, otherwise try VERCEL_URL
+    const backendUrl = process.env.BACKEND_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+      'https://fintrackai-api.vercel.app';
+    return `${backendUrl}/api/auth/google/callback`;
   }
   return 'http://localhost:8000/api/auth/google/callback';
 };
