@@ -83,11 +83,11 @@ function App() {
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <AuthSuccessHandler>
+            <AuthSuccessHandler>
+              <ProtectedRoute>
                 <DashboardLayout><Dashboard /></DashboardLayout>
-              </AuthSuccessHandler>
-            </ProtectedRoute>
+              </ProtectedRoute>
+            </AuthSuccessHandler>
           } />
           <Route path="/transaction" element={
             <ProtectedRoute>
