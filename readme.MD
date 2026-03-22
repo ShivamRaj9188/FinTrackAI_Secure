@@ -1,10 +1,10 @@
-# FinTrack AI – Production Ready (v2.0) 🚀
+# FinTrack AI – Production Ready (v2.0)
 
 FinTrack AI is a modern fintech application that uses Gemini AI to analyze your bank statements, track expenses, and deliver real-time actionable financial insights.
 
 Built with a MERN stack + Vite, featuring a premium Stripe-like UI, JWT role-based access control, automated AI insights, and production-grade security.
 
-## ✨ Core Features
+## Core Features
 - **Neural Financial Insights:** Real AI analysis using Google's Gemini API with anti-hallucination guardrails and confidence scoring.
 - **Premium UI/UX:** Glassmorphism, tailored dark themes, and dynamic React components.
 - **Role-Based Access Control (RBAC):** Strict JWT middleware protecting user data and granular admin routes.
@@ -13,7 +13,7 @@ Built with a MERN stack + Vite, featuring a premium Stripe-like UI, JWT role-bas
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 ```bash
 FinTrackAI_Secure/
@@ -34,7 +34,7 @@ FinTrackAI_Secure/
 
 ---
 
-## 🚀 Local Setup
+## Local Setup
 
 ### 1. Backend Setup
 ```bash
@@ -72,9 +72,9 @@ npm run dev
 
 ---
 
-## 🌍 Production Deployment
+## Production Deployment
 
-This repository is pre-configured for free, automated deployments.
+This repository is pre-configured for automated deployments.
 
 ### Deploying the Backend (Render)
 This repository includes a `render.yaml` Blueprint.
@@ -93,7 +93,7 @@ This repository is optimized for Vercel.
 
 ---
 
-## 🔒 Security Hardening (Phase 3 Complete)
+## Security Hardening (Phase 3 Complete)
 - **Rate Limiting:** Prevents brute-force on `/api/auth/*`.
 - **JWT Expiration:** Tokens are strictly limited to `1d` (24 hours).
 - **Injection Defenses:** Requests sanitized against NoSQL injection and Cross-Site Scripting.
