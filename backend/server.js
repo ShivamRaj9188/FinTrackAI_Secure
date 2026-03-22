@@ -188,8 +188,18 @@ app.use(passport.session());
 // Apply maintenance mode middleware (before other routes)
 app.use(checkMaintenanceMode);
 
-// Connect to database
-connectDB();
+// Ensure database is connected before handling any API requests
+app.use(async (req, res, next) => {
+  try {
+    if (req.path.startsWith('/api/') || req.path === '/health') {
+      await connectDB();
+    }
+    next();
+  } catch (error) {
+    console.error('Database connection failed in middleware:', error);
+    res.status(500).json({ success: false, message: 'Database connection failed' });
+  }
+});
 
 
 // Health check - test if server is working
