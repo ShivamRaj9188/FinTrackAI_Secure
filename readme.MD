@@ -1,80 +1,101 @@
-# Fintack AI Project
+# FinTrack AI – Production Ready (v2.0) 🚀
 
-This repository contains the source code for the Fintack AI project. The project is structured into two main parts: a modern React-based application and a collection of basic HTML/CSS/JS files.
+FinTrack AI is a modern fintech application that uses Gemini AI to analyze your bank statements, track expenses, and deliver real-time actionable financial insights.
 
-## Project Structure
+Built with a MERN stack + Vite, featuring a premium Stripe-like UI, JWT role-based access control, automated AI insights, and production-grade security.
 
-The workspace is organized as follows:
+## ✨ Core Features
+- **Neural Financial Insights:** Real AI analysis using Google's Gemini API with anti-hallucination guardrails and confidence scoring.
+- **Premium UI/UX:** Glassmorphism, tailored dark themes, and dynamic React components.
+- **Role-Based Access Control (RBAC):** Strict JWT middleware protecting user data and granular admin routes.
+- **High Performance:** Route-level code splitting (`React.lazy`) and optimized bundle sizes.
+- **Production Security:** Configured with `helmet`, `express-rate-limit`, `xss-clean`, and `mongo-sanitize`.
 
+---
+
+## 🏗️ Project Architecture
+
+```bash
+FinTrackAI_Secure/
+├── backend/                # Node.js + Express API
+│   ├── authentication/     # Login, Signup, Admin Auth logic
+│   ├── middleware/         # Security, validation, and JWT guards
+│   ├── models/             # Mongoose schemas (User, Transaction, etc.)
+│   └── server.js           # Express entry point
+│
+└── frontendpart/           # React + Vite Client
+    ├── src/
+    │   ├── Authentication/ # Auth flows
+    │   ├── components/     # Reusable UI architecture
+    │   ├── Dashboard/      # Main application hub
+    │   ├── api/            # Backend communication layer
+    │   └── App.jsx         # Router & suspense bounds
 ```
-.
-├── BasicCode/              # Basic HTML, CSS, and JavaScript files
-├── frontendpart/           # Main React application
-│   ├── src/                # Source code for the React app
-│   ├── public/             # Public assets
-│   ├── package.json        # Project dependencies and scripts
-│   └── vite.config.js      # Vite configuration
-└── readme.MD               # This file
+
+---
+
+## 🚀 Local Setup
+
+### 1. Backend Setup
+```bash
+cd backend
+npm install
+```
+Create a `.env` file in the `backend` directory:
+```env
+NODE_ENV=development
+PORT=8000
+MONGODB_URI=mongodb://localhost:27017/fintrackai
+JWT_SECRET=your_super_secret_jwt_key
+SESSION_SECRET=your_super_secret_session_key
+GEMINI_API_KEY=your_google_gemini_api_key
+FRONTEND_URL=http://localhost:5173
+```
+Start the server:
+```bash
+npm run dev
 ```
 
--   **`BasicCode/`**: This directory contains a set of static web pages. These might be initial mockups, prototypes, or a separate static site. You can open the `.html` files directly in a browser to view them.
+### 2. Frontend Setup
+```bash
+cd frontendpart
+npm install
+```
+Create a `.env` file in the `frontendpart` directory:
+```env
+VITE_API_URL=http://localhost:8000/api
+```
+Start the Vite development server:
+```bash
+npm run dev
+```
 
--   **`frontendpart/`**: This is the main application, built with React, Vite, and Tailwind CSS. It includes features like user authentication, dashboards, and more.
+---
 
-## Running the Main Application
+## 🌍 Production Deployment
 
-To run the main React application located in the `frontendpart` directory, follow these steps:
+This repository is pre-configured for free, automated deployments.
 
-### Prerequisites
+### Deploying the Backend (Render)
+This repository includes a `render.yaml` Blueprint.
+1. Create an account at [Render.com](https://render.com).
+2. Go to your Render Dashboard -> **New** -> **Blueprint**.
+3. Connect this GitHub repository. Render will automatically detect the backend configuration and deploy it.
+4. Add your `.env` variables (MongoDB Atlas URI, Gemini API Key, etc.) in the Render dashboard.
 
--   [Node.js](https://nodejs.org/) (which includes npm) installed on your system.
+### Deploying the Frontend (Vercel)
+This repository is optimized for Vercel.
+1. Create an account at [Vercel.com](https://vercel.com).
+2. Click **Add New Project** and select this repository.
+3. Set the **Root Directory** to `frontendpart`.
+4. Add the `VITE_API_URL` environment variable pointing to your deployed Render backend (e.g., `https://fintrackai-api.onrender.com/api`).
+5. Click **Deploy**.
 
-### Setup and Execution
+---
 
-1.  **Navigate to the frontend directory:**
-    Open your terminal and change to the `frontendpart` directory.
-
-    ```bash
-    cd frontendpart
-    ```
-
-2.  **Install dependencies:**
-    Install the necessary Node.js packages defined in `package.json`.
-
-    ```bash
-    npm install
-    ```
-
-3.  **Start the development server:**
-    This command will start the Vite development server, and you can view the application in your browser.
-
-    ```bash
-    npm run dev
-    ```
-
-    The application will typically be available at `http://localhost:5173`.
-
-### Key Dependencies
-
-This project relies on several key libraries. While `npm install` will install all of them, here are the commands to install them individually:
-
--   **GSAP (GreenSock Animation Platform):** For animations.
-    ```bash
-    npm install gsap
-    ```
-
--   **Chart.js:** For creating charts, including pie charts.
-    ```bash
-    npm install chart.js
-    ```
-
--   **Tailwind CSS with PostCSS and Autoprefixer:** For styling.
-    ```bash
-    npm install -D tailwindcss postcss autoprefixer
-    ```
-
-### Other Available Scripts
-
--   **`npm run build`**: To create a production build of the application. The output will be in the `dist` folder.
--   **`npm run lint`**: To run the ESLint linter on the project files.
--   **`npm run preview`**: To preview the production build locally.
+## 🔒 Security Hardening (Phase 3 Complete)
+- **Rate Limiting:** Prevents brute-force on `/api/auth/*`.
+- **JWT Expiration:** Tokens are strictly limited to `1d` (24 hours).
+- **Injection Defenses:** Requests sanitized against NoSQL injection and Cross-Site Scripting.
+- **XSS Protections:** React's native DOM auto-escaping is verified. No `dangerouslySetInnerHTML` vulnerabilities exist.
+- **Dependency Health:** `npm audit fix --force` actively applied ensuring 0 vulnerabilities.
