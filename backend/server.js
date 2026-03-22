@@ -241,6 +241,16 @@ app.post('/api/auth/admin/login', loginValidation, adminLogin); // Admin login (
 // Google Authentication Routes
 app.use('/api/auth', authRoutes);
 
+// Endpoint to check if Google Auth is configured (for frontend UI)
+app.get('/api/auth/google/status', (req, res) => {
+  res.json({
+    enabled: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CLIENT_ID !== 'mock_id'),
+    message: (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_ID !== 'mock_id') 
+      ? 'Google OAuth is configured' 
+      : 'Google OAuth setup required'
+  });
+});
+
 // AI Insights Route (Protected)
 app.post('/api/insights/generate', strictAuthMiddleware, generateInsights);
 
