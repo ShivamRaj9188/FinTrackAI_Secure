@@ -3,12 +3,20 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 // Use the existing User model
 const User = require('./authentication/User');
 
-// Initialize Google Strategy - Fixed for Render
-const callbackURL = process.env.NODE_ENV === 'production'
-  ? 'https://fintrackai.onrender.com/api/auth/google/callback'
-  : 'http://localhost:8000/api/auth/google/callback';
+// Initialize Google Strategy - Dynamic for Vercel/Local
+const getCallbackURL = () => {
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/auth/google/callback`;
+  if (process.env.FRONTEND_URL && process.env.FRONTEND_URL.includes('vercel.app')) {
+     // If frontend is vercel, assume backend is too or at least use this base
+     return `${process.env.FRONTEND_URL.replace(/\/$/, '')}/api/auth/google/callback`;
+  }
+  return 'http://localhost:8000/api/auth/google/callback';
+};
 
-// Google OAuth configured for production
+const callbackURL = getCallbackURL();
+console.log('Google Auth Callback URL:', callbackURL);
+
+// Google OAuth configuration
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -18,28 +26,24 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // Check if user already exists
         let user = await User.findOne({ email: profile.emails[0].value });
 
         if (user) {
-          // User exists, update googleId if not set
           if (!user.googleId) {
             user.googleId = profile.id;
             await user.save();
           }
-          // Set isVerified to true since Google account is verified
           if (!user.isVerified) {
             user.isVerified = true;
             await user.save();
           }
           return done(null, user);
         } else {
-          // Create new user
           user = new User({
             name: profile.displayName,
             email: profile.emails[0].value,
             googleId: profile.id,
-            isVerified: true, // Google accounts are verified
+            isVerified: true,
             status: 'Active'
           });
 
@@ -53,7 +57,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     }
   ));
 } else {
-  console.warn('WARNING: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not found in environment. Google Login is disabled.');
+  // Register a dummy strategy to prevent "Unknown authentication strategy" error
+  // but it will fail gracefully if actually called
+  passport.use('google', new GoogleStrategy({
+      clientID: 'dummy',
+      clientSecret: 'dummy',
+      callbackURL: 'http://localhost/dummy'
+    }, (at, rt, p, done) => done(new Error('Google keys missing'))));
+  
+  console.warn('WARNING: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not found. Google Login is disabled.');
 }
 
 // Serialize and deserialize user
