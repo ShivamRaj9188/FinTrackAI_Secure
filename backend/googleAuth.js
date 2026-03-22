@@ -3,14 +3,12 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 // Use the existing User model
 const User = require('./authentication/User');
 
-// Initialize Google Strategy - use BACKEND_URL env var for flexibility
-// This ensures the callback URL always matches the actual deployment domain
+// Initialize Google Strategy - use BACKEND_URL env var or stable production domain
+// IMPORTANT: Do NOT use VERCEL_URL — it gives deployment-specific URLs that won't match Google Console
 const getCallbackURL = () => {
   if (process.env.NODE_ENV === 'production') {
-    // Use BACKEND_URL env var if set, otherwise try VERCEL_URL
-    const backendUrl = process.env.BACKEND_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-      'https://fintrackai-api.vercel.app';
+    // Use BACKEND_URL env var if set, otherwise use the stable production domain
+    const backendUrl = process.env.BACKEND_URL || 'https://fintrackai-api.vercel.app';
     return `${backendUrl}/api/auth/google/callback`;
   }
   return 'http://localhost:8000/api/auth/google/callback';
