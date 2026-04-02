@@ -1,6 +1,6 @@
 # FinTrackAI: AI-Powered Financial Intelligence
 
-FinTrackAI is a comprehensive financial technology platform designed to provide automated expense tracking and actionable financial insights using the Google Gemini AI engine. The platform is built on the MERN stack (MongoDB, Express, React, Node.js) with a high-performance Vite frontend and secure JWT-based authentication.
+FinTrackAI is a comprehensive financial technology platform designed to provide automated expense tracking and actionable financial insights using the Google Gemini AI engine. The platform is built on the MERN stack (MongoDB, Express, React, Node.js) with a high-performance Vite frontend and secure JWT-based authentication
 
 ## Live Application
 The production environment is accessible at the following URL:
