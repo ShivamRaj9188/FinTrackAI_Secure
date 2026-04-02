@@ -70,7 +70,7 @@ FinTrackAI_Secure/
    npm install
    ```
 2. Configure the `.env` file in the `frontendpart` directory:
-   - `VITE_API_URL`: Path to the backend service (e.g., `http://localhost:8000/api`).
+   - `VITE_API_URL`: Path to the backend service (e.g., `http://localhost:8000/api`)
 3. Launch the development server:
    ```bash
    npm run dev
