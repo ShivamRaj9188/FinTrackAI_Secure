@@ -6,6 +6,16 @@ FinTrackAI is a comprehensive financial technology platform designed to provide 
 The production environment is accessible at the following URL:
 [https://fin-track-ai-secure.vercel.app](https://fin-track-ai-secure.vercel.app)
 
+## Preview
+
+### Landing Page
+
+![FinTrackAI landing page preview](./docs/previews/landing-page-preview.png)
+
+### Features Section
+
+![FinTrackAI features section preview](./docs/previews/features-section-preview.png)
+
 ## Core Capabilities
 
 ### AI-Driven Analytics
