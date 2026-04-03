@@ -81,8 +81,8 @@ FinTrackAI_Secure/
 ## Security and Compliance
 
 The platform implements several layers of security to protect sensitive financial information:
-- **XSS Protection:** Enforced through Helmet security headers and React's automatic sanitization.
-- **Rate Limiting:** Protects authentication endpoints from automated brute-force attempts.
-- **Sanitization:** All inputs are passed through specialized middleware to prevent NoSQL injection.
-- **Encryption:** All persistent user passwords are encrypted using intensive salts and hash rotations.
-- **OAuth Safety:** Integrated guardrails prevent invalid authentication redirects if configurations are missing.
+- **XSS Protection:** Enforced through Helmet security headers and React's automatic sanitization
+- **Rate Limiting:** Protects authentication endpoints from automated brute-force attempts
+- **Sanitization:** All inputs are passed through specialized middleware to prevent NoSQL injection
+- **Encryption:** All persistent user passwords are encrypted using intensive salts and hash rotations
+- **OAuth Safety:** Integrated guardrails prevent invalid authentication redirects if configurations are missing
