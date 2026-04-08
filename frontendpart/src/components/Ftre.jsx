@@ -5,47 +5,47 @@ import { Link } from 'react-router-dom';
 
 const features = [
   {
-    title: 'AI Categorization',
-    description: 'Neural AI auto-classifies every transaction into meaningful spending categories with 99% accuracy.',
+    title: 'Google + JWT Authentication',
+    description: 'Use secure JWT login or additive Google OAuth sign-in without disrupting the existing auth experience.',
+    icon: 'fa-right-to-bracket',
+    accent: 'from-sky-500 to-blue-400',
+  },
+  {
+    title: 'Validated CSV/PDF Ingestion',
+    description: 'Upload CSV or PDF statements, validate them before storage, and review warnings and preview rows immediately.',
+    icon: 'fa-file-circle-check',
+    accent: 'from-rose-500 to-pink-400',
+  },
+  {
+    title: 'ML Expense Categorization',
+    description: 'Transactions are classified with lightweight ML-style scoring plus safe rule-based fallback for consistent results.',
     icon: 'fa-wand-magic-sparkles',
     accent: 'from-blue-500 to-cyan-400',
   },
   {
-    title: 'Spending Insights',
-    description: 'Get monthly patterns, anomaly detection, and personalized budget recommendations powered by Gemini.',
+    title: 'AI Savings Insights',
+    description: 'Get summary metrics, savings suggestions, category concentration, and actionable financial insights.',
     icon: 'fa-chart-pie',
     accent: 'from-emerald-500 to-green-400',
   },
   {
-    title: 'Bank-Grade Security',
-    description: 'End-to-end encryption, JWT auth, rate limiting, XSS protection, and input sanitization on every request.',
-    icon: 'fa-shield-halved',
-    accent: 'from-purple-500 to-violet-400',
-  },
-  {
-    title: 'Smart Alerts',
-    description: 'Real-time notifications when spending spikes in a category beyond your set threshold.',
-    icon: 'fa-bell',
+    title: 'Interactive Dashboards',
+    description: 'Explore spending, savings, recent activity, and category breakdowns through enhanced dashboard widgets.',
+    icon: 'fa-chart-line',
     accent: 'from-amber-500 to-yellow-400',
   },
   {
-    title: 'Multi-Format Upload',
-    description: 'Upload bank statements in PDF or CSV. Our parser handles major Indian bank formats automatically.',
-    icon: 'fa-cloud-arrow-up',
-    accent: 'from-rose-500 to-pink-400',
-  },
-  {
-    title: 'Exportable Reports',
-    description: 'Download your financial analysis as CSV or print-ready PDF for tax filing and audit purposes.',
-    icon: 'fa-file-export',
-    accent: 'from-indigo-500 to-blue-400',
+    title: 'Bank-Grade Security',
+    description: 'JWT auth, OAuth guardrails, rate limiting, XSS protection, and sanitization secure every request path.',
+    icon: 'fa-shield-halved',
+    accent: 'from-purple-500 to-violet-400',
   },
 ];
 
 const howItWorks = [
-  { step: '01', title: 'Sign Up', desc: 'Create your free account in under 30 seconds.' },
-  { step: '02', title: 'Upload Statement', desc: 'Drop a PDF or CSV from any Indian bank.' },
-  { step: '03', title: 'Get AI Insights', desc: 'Receive personalized spending analysis and savings tips.' },
+  { step: '01', title: 'Sign Up or Use Google', desc: 'Start with email/password or Google OAuth without changing your existing account flow.' },
+  { step: '02', title: 'Upload & Validate', desc: 'Drop a PDF or CSV statement and review validation summaries before analysis.' },
+  { step: '03', title: 'Explore Insights', desc: 'See categorized spending, dashboard analytics, and savings opportunities instantly.' },
 ];
 
 const FeaturesPage = () => (
@@ -63,7 +63,7 @@ const FeaturesPage = () => (
           Powerful Features for <span className="gradient-text">Complete Control</span>
         </h1>
         <p className="text-lg text-[#666] max-w-2xl mx-auto leading-relaxed">
-          From automatic AI categorization to real-time spending alerts — everything you need to master your finances.
+          From secure sign-in and validated uploads to ML categorization and savings analytics — everything you need to understand your money flow.
         </p>
       </div>
     </section>

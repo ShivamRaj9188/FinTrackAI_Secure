@@ -24,7 +24,7 @@ const MainPricing = () => {
       <div className="max-w-7xl mx-auto px-4 py-24 text-center relative z-10">
         <h1 className="text-4xl md:text-7xl font-black text-white mb-6 uppercase tracking-tight">Choice of Power</h1>
         <p className="text-xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed mb-12">
-          Transparent pricing for professional financial management. Expand your neural engine as you grow.
+          Transparent pricing for secure ingestion, smarter categorization, and richer financial analytics as you grow.
         </p>
 
         <div className="inline-flex bg-[#0A0A0A] rounded-2xl p-1.5 mb-20 border border-white/5 shadow-2xl">
@@ -55,8 +55,10 @@ const MainPricing = () => {
             <ul className="space-y-4 mb-12 flex-grow">
               {[
                 "5 statements / month",
+                "JWT + Google sign-in",
+                "Validated CSV/PDF ingestion",
                 "Basic AI categorization",
-                "Standard Dashboard",
+                "Standard dashboard",
                 "7-day data retention"
               ].map((item, idx) => (
                 <li key={idx} className="flex items-center gap-3 text-xs font-black text-gray-400 tracking-widest uppercase">
@@ -84,7 +86,8 @@ const MainPricing = () => {
               {[
                 "Unlimited statement uploads",
                 "Advanced AI insights",
-                "Budget planning & alerts",
+                "Savings opportunity summaries",
+                "Category trend analysis",
                 "PDF/Excel exports",
                 "Priority support"
               ].map((item, idx) => (
@@ -108,10 +111,10 @@ const MainPricing = () => {
             </div>
             <ul className="space-y-4 mb-12 flex-grow">
               {[
-                "Everything in Premium",
-                "GST expense tracking",
-                "Full P&L statements",
-                "Invoice management",
+                "Everything in Pro",
+                "Multi-user financial access",
+                "Custom integrations",
+                "Dedicated onboarding",
                 "Team collaboration"
               ].map((item, idx) => (
                 <li key={idx} className="flex items-center gap-3 text-xs font-black text-gray-400 tracking-widest uppercase">

@@ -5,7 +5,7 @@ import Footer from './Footer';
 const faqs = [
   {
     question: 'How do I get started?',
-    answer: 'Sign up for a free account, then upload your bank statement (PDF or CSV). The AI will automatically process it and display your financial dashboard with insights.',
+    answer: 'Create an account with email/password or Google sign-in, then upload a PDF or CSV statement. FinTrackAI validates the file, stores structured transactions, and shows your dashboard insights.',
   },
   {
     question: 'Do I need to link my bank account?',
@@ -13,15 +13,15 @@ const faqs = [
   },
   {
     question: 'What file formats are supported?',
-    answer: 'We support PDF and CSV files from major Indian banks and payment apps including SBI, HDFC, ICICI, Axis, Kotak, PhonePe, and Google Pay.',
+    answer: 'We currently support PDF and CSV uploads. The new ingestion flow validates rows, highlights warnings, and stores clean transactions for analytics and reporting.',
   },
   {
     question: 'Is my data secure?',
-    answer: 'Absolutely. We use bank-grade encryption (AES-256), JWT authentication, rate limiting, XSS protection, and NoSQL injection prevention. Your data is temporarily stored only during processing.',
+    answer: 'Absolutely. FinTrackAI uses JWT authentication, optional Google OAuth, rate limiting, XSS protection, and NoSQL injection prevention to protect account and transaction workflows.',
   },
   {
     question: 'How does AI categorization work?',
-    answer: 'Our AI analyzes transaction descriptions and amounts to automatically classify them into categories like Food, Transport, Shopping, Utilities, and more — with 99% accuracy.',
+    answer: 'FinTrackAI combines lightweight ML-style text scoring with rule-based fallbacks to classify transactions into categories like food, transport, shopping, utilities, and more.',
   },
   {
     question: 'Can I use it on mobile?',
@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     question: 'What does the Pro plan include?',
-    answer: 'Pro gives you unlimited statement uploads, advanced AI insights with savings tips, category trend analysis, CSV/PDF report export, custom budget alerts, and priority support — all for ₹499/month.',
+    answer: 'Pro is positioned for heavier usage with unlimited uploads, advanced AI insights, category trend analysis, exports, and priority support. Check the pricing page for the latest plan details.',
   },
   {
     question: 'Can I export my reports?',

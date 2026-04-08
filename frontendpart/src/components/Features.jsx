@@ -2,40 +2,40 @@ import React from 'react';
 
 const features = [
   {
-    title: 'AI Categorization',
-    description: 'Neural AI auto-classifies every transaction into meaningful spending categories.',
+    title: 'Google + JWT Authentication',
+    description: 'Secure sign-in with email/password JWT auth plus additive Google OAuth login for faster onboarding.',
+    icon: 'fa-right-to-bracket',
+    accent: 'from-sky-500 to-blue-400',
+  },
+  {
+    title: 'Validated CSV/PDF Ingestion',
+    description: 'Upload statements in CSV or PDF, validate rows before storage, and review previews and warnings instantly.',
+    icon: 'fa-file-circle-check',
+    accent: 'from-rose-500 to-pink-400',
+  },
+  {
+    title: 'ML Expense Categorization',
+    description: 'Transactions are categorized using lightweight TF-IDF-style scoring with rule-based fallback for stability.',
     icon: 'fa-wand-magic-sparkles',
     accent: 'from-blue-500 to-cyan-400',
   },
   {
-    title: 'Spending Insights',
-    description: 'Get monthly patterns, anomaly detection, and personalized budget recommendations.',
+    title: 'AI Savings Insights',
+    description: 'See summary metrics, savings opportunities, category concentration, and trend-based financial recommendations.',
     icon: 'fa-chart-pie',
     accent: 'from-emerald-500 to-green-400',
   },
   {
-    title: 'Bank-Grade Security',
-    description: 'End-to-end encryption, JWT auth, rate limiting, and input sanitization on every request.',
-    icon: 'fa-shield-halved',
-    accent: 'from-purple-500 to-violet-400',
-  },
-  {
-    title: 'Smart Alerts',
-    description: 'Real-time notifications when spending spikes in a category beyond your set threshold.',
-    icon: 'fa-bell',
+    title: 'Interactive Dashboards',
+    description: 'Track spending, savings, top categories, and recent activity through enhanced dashboard widgets and reports.',
+    icon: 'fa-chart-line',
     accent: 'from-amber-500 to-yellow-400',
   },
   {
-    title: 'Multi-Format Upload',
-    description: 'Upload bank statements in PDF or CSV. Our parser handles major bank formats automatically.',
-    icon: 'fa-cloud-arrow-up',
-    accent: 'from-rose-500 to-pink-400',
-  },
-  {
-    title: 'Exportable Reports',
-    description: 'Download your financial analysis as CSV or print-ready PDF for tax and audit purposes.',
-    icon: 'fa-file-export',
-    accent: 'from-indigo-500 to-blue-400',
+    title: 'Bank-Grade Security',
+    description: 'JWT auth, OAuth guardrails, rate limiting, XSS protection, and request sanitization protect every workflow.',
+    icon: 'fa-shield-halved',
+    accent: 'from-purple-500 to-violet-400',
   },
 ];
 
@@ -55,7 +55,7 @@ const Features = () => (
           <span className="gradient-text">Master Your Money</span>
         </h2>
         <p className="text-lg text-[#666] max-w-2xl mx-auto leading-relaxed">
-          Professional financial tools powered by neural intelligence. From automatic categorization to AI-driven recommendations.
+          From validated statement ingestion to smart categorization and savings analytics, FinTrackAI now covers the full financial workflow end to end.
         </p>
       </div>
 

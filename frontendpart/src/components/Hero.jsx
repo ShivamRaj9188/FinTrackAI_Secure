@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const metrics = [
-    { label: 'Active Users', value: '50K+', icon: 'fa-users' },
-    { label: 'Analyzed', value: '₹2Cr+', icon: 'fa-chart-line' },
-    { label: 'AI Insights', value: '1M+', icon: 'fa-brain' },
+    { label: 'CSV & PDF Ready', value: '2 Formats', icon: 'fa-file-arrow-up' },
+    { label: 'Smart Categories', value: 'ML + Rules', icon: 'fa-tags' },
+    { label: 'Insight Views', value: 'Savings + Trends', icon: 'fa-brain' },
   ];
 
   return (
@@ -32,7 +32,7 @@ const Hero = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-secondary)] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-secondary)]"></span>
               </span>
-              <span className="text-[11px] font-semibold tracking-wide text-[#888]">AI-POWERED FINANCIAL ENGINE</span>
+              <span className="text-[11px] font-semibold tracking-wide text-[#888]">JWT + GOOGLE OAUTH + AI ANALYTICS</span>
             </div>
 
             {/* Headline */}
@@ -44,7 +44,7 @@ const Hero = () => {
 
             {/* Subhead */}
             <p className="text-lg text-[#888] leading-relaxed max-w-lg mb-10">
-              Upload your bank statements. Get instant AI-powered spending analysis, smart categorization, and personalized insights to grow your wealth.
+              Upload validated CSV or PDF statements, auto-organize expenses with smart categorization, and explore savings, spending, and category insights from one secure dashboard.
             </p>
 
             {/* CTAs */}
@@ -66,9 +66,9 @@ const Hero = () => {
             {/* Trust Bar */}
             <div className="flex items-center gap-6 mt-10 pt-8 border-t border-white/5">
               {[
-                { icon: 'fa-lock', label: 'Bank-grade Encryption' },
-                { icon: 'fa-shield-alt', label: 'SOC2 Compliant' },
-                { icon: 'fa-bolt', label: 'Real-time Analysis' },
+                { icon: 'fa-lock', label: 'JWT + Google Sign-In' },
+                { icon: 'fa-file-circle-check', label: 'Validated CSV/PDF Uploads' },
+                { icon: 'fa-chart-pie', label: 'Interactive Insight Dashboard' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-[11px] font-medium text-[#555]">
                   <i className={`fas ${item.icon} text-[var(--accent-primary)] text-[10px]`}></i>
