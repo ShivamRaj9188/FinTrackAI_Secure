@@ -6,11 +6,20 @@ const User = require('./authentication/User');
 // Initialize Google Strategy - use BACKEND_URL env var or stable production domain
 // IMPORTANT: Do NOT use VERCEL_URL — it gives deployment-specific URLs that won't match Google Console
 const getCallbackURL = () => {
-  if (process.env.NODE_ENV === 'production') {
-    // Use BACKEND_URL env var if set, otherwise use the stable production domain
-    const backendUrl = process.env.BACKEND_URL || 'https://fintrackai-api.vercel.app';
+  // Always prioritize BACKEND_URL if explicitly set in environment
+  if (process.env.BACKEND_URL) {
+    const backendUrl = process.env.BACKEND_URL.replace(/\/$/, '');
     return `${backendUrl}/api/auth/google/callback`;
   }
+
+  // Fallback for development or if BACKEND_URL is missing
+  if (process.env.NODE_ENV === 'production') {
+    // If we're in production but missing BACKEND_URL, we're in a risky state.
+    // We'll use the provided stable domain as a last resort, but warn about it.
+    const fallbackUrl = 'https://fintrackai-api.vercel.app'; 
+    return `${fallbackUrl}/api/auth/google/callback`;
+  }
+
   return 'http://localhost:8000/api/auth/google/callback';
 };
 

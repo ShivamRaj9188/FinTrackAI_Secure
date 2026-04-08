@@ -61,30 +61,31 @@ const shouldPreferConfiguredApiBase = (value) => {
 };
 
 export const getApiBaseCandidates = () => {
-  const rawConfiguredApiBase = normalizeApiBase(
+  // 1. Explicitly configured API URL (from .env or Vercel settings)
+  const configuredApiBase = normalizeApiBase(
     import.meta.env.VITE_API_URL ||
     import.meta.env.vite_api_url
   );
-  const configuredApiBase = shouldPreferConfiguredApiBase(rawConfiguredApiBase)
-    ? rawConfiguredApiBase
-    : null;
+
+  // 2. Derive from configured Backend Origin
   const configuredBackendOrigin = normalizeApiBase(
     import.meta.env.VITE_BACKEND_URL ||
     import.meta.env.VITE_PUBLIC_BACKEND_URL
   );
-  const browserApiBase = normalizeApiBase(getBrowserApiBase());
-  const configuredBackendApiBase = configuredBackendOrigin
-    ? `${configuredBackendOrigin}/api`
-    : null;
+  const configuredBackendApiBase = configuredBackendOrigin ? `${configuredBackendOrigin}/api` : null;
+
+  // 3. Current window origin (useful if frontend and backend are served together)
+  const browserApiBase = typeof window !== 'undefined' ? `${window.location.origin}/api` : null;
+  
   const browserHostname = typeof window !== 'undefined' ? window.location.hostname : null;
   const isLocalBrowser = Boolean(browserHostname && ['localhost', '127.0.0.1'].includes(browserHostname));
 
   return [
-    configuredBackendApiBase,
-    STABLE_PRODUCTION_API_BASE_URL,
-    configuredApiBase,
-    isLocalBrowser ? browserApiBase : null,
-    LOCAL_API_BASE_URL
+    configuredApiBase,                // Priority 1: Direct API URL
+    configuredBackendApiBase,         // Priority 2: Derived from Backend URL
+    STABLE_PRODUCTION_API_BASE_URL,   // Priority 3: Stable Fallback
+    isLocalBrowser ? LOCAL_API_BASE_URL : null, // Priority 4: Local if browser is local
+    browserApiBase,                   // Priority 5: Guess from browser
   ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index);
 };
 
@@ -96,11 +97,9 @@ export const buildApiUrl = (baseUrl, endpoint = '') => {
 
 const API_BASE_URL = getApiBaseCandidates()[0] || LOCAL_API_BASE_URL;
 
-console.log('API Configuration:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  vite_api_url: import.meta.env.vite_api_url,
-  API_BASE_URL: API_BASE_URL,
-  API_BASE_CANDIDATES: getApiBaseCandidates()
+console.log('🔗 API Configuration:', {
+  Active_URL: API_BASE_URL,
+  Candidates: getApiBaseCandidates()
 });
 
 // API endpoints

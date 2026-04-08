@@ -3,24 +3,6 @@ const User = require('./authentication/User');
 const Transaction = require('./models/Transaction');
 const jwt = require('jsonwebtoken');
 
-// Middleware to verify JWT token
-const verifyToken = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  try {
-    const { getJwtSecret } = require('./utils/secretHelper');
-    const decoded = jwt.verify(token, getJwtSecret());
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
-  }
-};
-
 // Get user dashboard data — computed from REAL transaction data
 const getDashboardData = async (req, res) => {
   try {
@@ -139,7 +121,6 @@ const updateProfile = async (req, res) => {
 };
 
 module.exports = {
-  verifyToken,
   getDashboardData,
   updateProfile
 };

@@ -27,7 +27,7 @@ const categorizationRoutes = require('./routes/categorizationRoutes');
 const insightsAnalyticsRoutes = require('./routes/insightsAnalyticsRoutes');
 
 // Import dashboard functions
-const { verifyToken, getDashboardData, updateProfile } = require('./dashboard');
+const { getDashboardData, updateProfile } = require('./dashboard');
 
 // Import validation middleware
 const { registerValidation, loginValidation, transactionValidation } = require('./middleware/validation');
@@ -37,7 +37,6 @@ const { upload, uploadTransactions, generateReport } = require('./uploadControll
 
 // Import transaction functions
 const {
-  verifyToken: verifyTransactionToken,
   getTransactions,
   addTransaction,
   updateTransaction,
@@ -113,24 +112,24 @@ app.use(express.json({ limit: '10mb' })); // To read JSON data with size limit
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS configuration for production
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
+  'https://fin-track-ai-secure.vercel.app',
+  'https://fintrackai-delta.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+].filter(Boolean);
+
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      process.env.CORS_ORIGIN,
-      'https://fin-track-ai-secure.vercel.app',
-      'https://fintrackai-delta.vercel.app',
-      'https://fintrackai-j3ldui64a-varunjoshi84s-projects.vercel.app',
-      'https://fintrackai-git-main-varunjoshi84s-projects.vercel.app',
-      'http://localhost:5173', // Development (Vite)
-      'http://localhost:3000', // Alternative dev port
-      'http://localhost:8080', // Vue/Webpack dev server
-      'http://localhost:4200'  // Angular dev server
-    ].filter(Boolean);
-
-    if (!origin || allowedOrigins.includes(origin)) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
+      console.warn(`CORS blocked for origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
