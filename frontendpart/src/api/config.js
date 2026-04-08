@@ -15,6 +15,18 @@ const normalizeApiBase = (value) => {
   return trimmed.replace(/\/$/, '');
 };
 
+const getHostnameFromApiBase = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return null;
+  }
+};
+
 const getBrowserApiBase = () => {
   if (typeof window === 'undefined') {
     return null;
@@ -32,11 +44,30 @@ const getBrowserApiBase = () => {
   return `${origin.replace(/\/$/, '')}/api`;
 };
 
+const shouldPreferConfiguredApiBase = (value) => {
+  const normalizedValue = normalizeApiBase(value);
+  if (!normalizedValue) {
+    return false;
+  }
+
+  const hostname = getHostnameFromApiBase(normalizedValue);
+  const browserHostname = typeof window !== 'undefined' ? window.location.hostname : null;
+
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return Boolean(browserHostname && ['localhost', '127.0.0.1'].includes(browserHostname));
+  }
+
+  return true;
+};
+
 export const getApiBaseCandidates = () => {
-  const configuredApiBase = normalizeApiBase(
+  const rawConfiguredApiBase = normalizeApiBase(
     import.meta.env.VITE_API_URL ||
     import.meta.env.vite_api_url
   );
+  const configuredApiBase = shouldPreferConfiguredApiBase(rawConfiguredApiBase)
+    ? rawConfiguredApiBase
+    : null;
   const configuredBackendOrigin = normalizeApiBase(
     import.meta.env.VITE_BACKEND_URL ||
     import.meta.env.VITE_PUBLIC_BACKEND_URL
@@ -45,12 +76,14 @@ export const getApiBaseCandidates = () => {
   const configuredBackendApiBase = configuredBackendOrigin
     ? `${configuredBackendOrigin}/api`
     : null;
+  const browserHostname = typeof window !== 'undefined' ? window.location.hostname : null;
+  const isLocalBrowser = Boolean(browserHostname && ['localhost', '127.0.0.1'].includes(browserHostname));
 
   return [
-    configuredApiBase,
-    browserApiBase,
     configuredBackendApiBase,
     STABLE_PRODUCTION_API_BASE_URL,
+    configuredApiBase,
+    isLocalBrowser ? browserApiBase : null,
     LOCAL_API_BASE_URL
   ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index);
 };
