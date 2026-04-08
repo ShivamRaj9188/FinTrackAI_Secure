@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { checkUserStatus, startAuthMonitoring } from '../utils/authCheck';
+import { getDashboardAnalytics } from '../api';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -11,6 +12,7 @@ const Dashboard = () => {
   const [categoryData, setCategoryData] = useState({});
   const [transactionCount, setTransactionCount] = useState(0);
   const [timePeriod, setTimePeriod] = useState('all');
+  const [enhancedAnalytics, setEnhancedAnalytics] = useState(null);
   const navigate = useNavigate();
 
   const spendingChartRef = useRef(null);
@@ -52,10 +54,22 @@ const Dashboard = () => {
       }
     };
 
+    const fetchEnhancedAnalytics = async () => {
+      try {
+        const result = await getDashboardAnalytics(timePeriod);
+        if (result?.success) {
+          setEnhancedAnalytics(result.data);
+        }
+      } catch (err) {
+        console.warn('Enhanced analytics unavailable:', err.message);
+      }
+    };
+
     fetchTransactions();
+    fetchEnhancedAnalytics();
     checkUserStatus();
     startAuthMonitoring();
-  }, [navigate]);
+  }, [navigate, timePeriod]);
 
   const processTransactions = (txs) => {
     const spending = txs.filter(t => t.type === 'debit').reduce((sum, t) => sum + t.amount, 0);
@@ -178,6 +192,26 @@ const Dashboard = () => {
       <div>
         <h1 className="text-2xl font-bold text-white tracking-tight">Financial Overview</h1>
         <p className="text-sm text-[#555] mt-1">Your spending analytics powered by AI</p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {[
+          { label: 'All Time', value: 'all' },
+          { label: '90 Days', value: '90d' },
+          { label: '30 Days', value: '30d' },
+        ].map((option) => (
+          <button
+            key={option.value}
+            onClick={() => setTimePeriod(option.value)}
+            className={`px-4 py-2 rounded-xl text-[11px] font-bold tracking-wider border transition-all ${
+              timePeriod === option.value
+                ? 'border-[var(--accent-primary)] text-white bg-[var(--accent-primary)]/10'
+                : 'border-white/[0.06] text-[#555] bg-white/[0.02]'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
 
       {/* Stat Cards — all real computed data */}
@@ -310,6 +344,73 @@ const Dashboard = () => {
                 );
               })}
           </div>
+        </div>
+      )}
+
+      {enhancedAnalytics?.summary && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="stat-card">
+              <p className="section-label mb-2">Avg Monthly Spend</p>
+              <p className="text-xl font-bold text-white">
+                ₹{Number(enhancedAnalytics.summary.averageMonthlySpending || 0).toLocaleString()}
+              </p>
+              <p className="text-[11px] text-[#555] mt-1">Based on {enhancedAnalytics.summary.monthlyTrend?.length || 0} months</p>
+            </div>
+            <div className="stat-card">
+              <p className="section-label mb-2">Savings Rate</p>
+              <p className="text-xl font-bold text-[var(--accent-secondary)]">
+                {enhancedAnalytics.summary.totals?.savingsRate || 0}%
+              </p>
+              <p className="text-[11px] text-[#555] mt-1">Net savings ₹{Number(enhancedAnalytics.summary.totals?.netSavings || 0).toLocaleString()}</p>
+            </div>
+            <div className="stat-card">
+              <p className="section-label mb-2">Smart Category</p>
+              <p className="text-xl font-bold text-white">{enhancedAnalytics.summary.topCategory?.category || '—'}</p>
+              <p className="text-[11px] text-[#555] mt-1">
+                ₹{Number(enhancedAnalytics.summary.topCategory?.amount || 0).toLocaleString()} tracked
+              </p>
+            </div>
+          </div>
+
+          {enhancedAnalytics.savingsInsights?.length > 0 && (
+            <div className="cashmate-card">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Savings Opportunities</h3>
+                  <p className="text-[11px] text-[#555] mt-1">Auto-generated from your transaction history</p>
+                </div>
+                <span className="badge badge-success">AI + Rules</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {enhancedAnalytics.savingsInsights.map((item, index) => (
+                  <div key={`${item.title}-${index}`} className="bg-white/[0.02] rounded-2xl p-5 border border-white/[0.04]">
+                    <p className="text-sm font-bold text-white mb-2">{item.title}</p>
+                    <p className="text-[12px] text-[#888] leading-relaxed mb-3">{item.description}</p>
+                    <p className="text-[11px] font-bold text-[var(--accent-primary)]">
+                      Estimated monthly impact: ₹{Math.max(0, Number(item.estimatedMonthlySaving || 0)).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {enhancedAnalytics.categoryInsights?.length > 0 && (
+            <div className="cashmate-card">
+              <h3 className="text-sm font-bold text-white mb-5">Category Intelligence</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {enhancedAnalytics.categoryInsights.slice(0, 3).map((item) => (
+                  <div key={item.category} className="bg-white/[0.02] rounded-2xl p-5">
+                    <p className="text-[10px] font-bold text-[#555] uppercase tracking-wider mb-2">#{item.rank} {item.category}</p>
+                    <p className="text-xl font-bold text-white mb-1">₹{Number(item.amount || 0).toLocaleString()}</p>
+                    <p className="text-[11px] text-[#555]">{item.share}% of tracked spending</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

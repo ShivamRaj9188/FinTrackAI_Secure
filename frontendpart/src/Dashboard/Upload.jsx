@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { uploadFile, generateReport } from '../api';
+import { uploadValidatedStatement, generateReport } from '../api';
 
 const Upload = () => {
   const [fileName, setFileName] = useState('');
@@ -10,6 +10,10 @@ const Upload = () => {
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [validationSummary, setValidationSummary] = useState(null);
+  const [validationPreview, setValidationPreview] = useState([]);
+  const [ingestionWarnings, setIngestionWarnings] = useState([]);
+  const [legacyFallbackUsed, setLegacyFallbackUsed] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -62,6 +66,10 @@ const Upload = () => {
     setUploading(true);
     setError('');
     setUploadProgress(0);
+    setValidationSummary(null);
+    setValidationPreview([]);
+    setIngestionWarnings([]);
+    setLegacyFallbackUsed(false);
 
     // Simulate progress
     const progressInterval = setInterval(() => {
@@ -69,12 +77,16 @@ const Upload = () => {
     }, 300);
 
     try {
-      const result = await uploadFile(file);
+      const result = await uploadValidatedStatement(file);
       clearInterval(progressInterval);
       setUploadProgress(100);
 
       if (result.success) {
         setFileId(result.fileId);
+        setValidationSummary(result.validationSummary);
+        setValidationPreview(result.preview || []);
+        setIngestionWarnings(result.warnings || []);
+        setLegacyFallbackUsed(Boolean(result.fallbackUsed));
       } else {
         setError(result.message || 'Upload failed');
         setUploadProgress(0);
@@ -205,6 +217,66 @@ const Upload = () => {
         <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 p-4 rounded-xl animate-fade-in">
           <i className="fas fa-exclamation-circle text-red-400 text-sm"></i>
           <span className="text-red-400 text-sm font-medium">{error}</span>
+        </div>
+      )}
+
+      {validationSummary && (
+        <div className="cashmate-card">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-white">Validation Summary</h3>
+              <p className="text-[11px] text-[#555] mt-1">Structured parsing completed before storage</p>
+            </div>
+            {legacyFallbackUsed && (
+              <span className="badge badge-neutral">Legacy fallback used</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Rows', value: validationSummary.totalRows || 0 },
+              { label: 'Valid', value: validationSummary.validRows || 0 },
+              { label: 'Warnings', value: validationSummary.warningRows || 0 },
+              { label: 'Stored', value: validationSummary.insertedRows || 0 },
+            ].map((item) => (
+              <div key={item.label} className="bg-white/[0.02] rounded-xl p-4">
+                <p className="text-[10px] text-[#555] uppercase tracking-wider font-bold mb-1">{item.label}</p>
+                <p className="text-lg font-bold text-white">{item.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {validationPreview.length > 0 && (
+            <div className="mt-5">
+              <p className="text-[10px] text-[#555] uppercase tracking-wider font-bold mb-3">Preview</p>
+              <div className="space-y-2">
+                {validationPreview.map((item, index) => (
+                  <div key={`${item.description}-${index}`} className="flex items-center justify-between gap-3 bg-white/[0.02] rounded-xl px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm text-white font-semibold truncate">{item.description}</p>
+                      <p className="text-[10px] text-[#555]">
+                        {item.category || 'Uncategorized'} • {new Date(item.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <p className={`text-sm font-bold whitespace-nowrap ${item.type === 'credit' ? 'text-[var(--accent-secondary)]' : 'text-white'}`}>
+                      {item.type === 'credit' ? '+' : '-'}₹{Number(item.amount || 0).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {ingestionWarnings.length > 0 && (
+            <div className="mt-5">
+              <p className="text-[10px] text-yellow-400 uppercase tracking-wider font-bold mb-2">Warnings</p>
+              <ul className="space-y-1 text-[12px] text-[#888]">
+                {ingestionWarnings.slice(0, 4).map((warning, index) => (
+                  <li key={`${warning}-${index}`}>• {warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

@@ -4,6 +4,9 @@ export * from './auth.js';
 export * from './upload.js';
 export * from './admin.js';
 export * from './contact.js';
+export * from './ingestion.js';
+export * from './analytics.js';
+export * from './oauth.js';
 
 // Import dashboard functions with specific names to avoid conflicts
 export { 

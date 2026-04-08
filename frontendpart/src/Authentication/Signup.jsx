@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../api';
+import { startGoogleOAuth } from '../api/oauth';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -8,6 +9,7 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -38,6 +40,22 @@ const Signup = () => {
       setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setError('');
+    setGoogleLoading(true);
+
+    try {
+      const result = await startGoogleOAuth();
+      if (!result.success) {
+        setError(result.message || 'Google sign-in is unavailable right now');
+        setGoogleLoading(false);
+      }
+    } catch (err) {
+      setError('Google sign-in failed. Please try again.');
+      setGoogleLoading(false);
     }
   };
 
@@ -227,13 +245,12 @@ const Signup = () => {
 
             <button
               type="button"
-              onClick={() => {
-                window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-              }}
+              onClick={handleGoogleSignUp}
+              disabled={googleLoading}
               className="w-full flex items-center justify-center gap-3 bg-white/[0.03] border border-white/[0.06] py-3.5 rounded-2xl text-sm font-semibold transition-all text-[#888] hover:bg-white/[0.06] hover:text-white"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
-              Google Account
+              {googleLoading ? 'CONNECTING...' : 'Google Account'}
             </button>
           </div>
 
