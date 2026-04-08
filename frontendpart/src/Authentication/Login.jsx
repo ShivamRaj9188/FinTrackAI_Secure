@@ -29,10 +29,10 @@ const Login = () => {
         localStorage.setItem('userInfo', JSON.stringify(result.user));
         navigate('/dashboard');
       } else {
-        setError(result.message || 'Invalid credentials');
+        setError(result.message || result.error || 'Invalid credentials');
       }
     } catch (err) {
-      setError('Login failed. Please check your connection.');
+      setError(err.message || 'Login failed. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ const Login = () => {
         setGoogleLoading(false);
       }
     } catch (err) {
-      setError('Google sign-in failed. Please try again.');
+      setError(err.message || 'Google sign-in failed. Please try again.');
       setGoogleLoading(false);
     }
   };

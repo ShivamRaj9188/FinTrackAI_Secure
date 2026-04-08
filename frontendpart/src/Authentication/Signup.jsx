@@ -34,10 +34,10 @@ const Signup = () => {
         localStorage.setItem('userInfo', JSON.stringify(result.user));
         navigate('/dashboard');
       } else {
-        setError(result.message || 'Registration failed');
+        setError(result.message || result.error || 'Registration failed');
       }
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ const Signup = () => {
         setGoogleLoading(false);
       }
     } catch (err) {
-      setError('Google sign-in failed. Please try again.');
+      setError(err.message || 'Google sign-in failed. Please try again.');
       setGoogleLoading(false);
     }
   };

@@ -1,10 +1,73 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.vite_api_url || 'http://localhost:8000/api';
+const LOCAL_API_BASE_URL = 'http://localhost:8000/api';
+const STABLE_PRODUCTION_API_BASE_URL = 'https://fintrackai-api.vercel.app/api';
+
+const normalizeApiBase = (value) => {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  return trimmed.replace(/\/$/, '');
+};
+
+const getBrowserApiBase = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const { origin, hostname } = window.location;
+  if (!origin) {
+    return null;
+  }
+
+  if (['localhost', '127.0.0.1'].includes(hostname)) {
+    return LOCAL_API_BASE_URL;
+  }
+
+  return `${origin.replace(/\/$/, '')}/api`;
+};
+
+export const getApiBaseCandidates = () => {
+  const configuredApiBase = normalizeApiBase(
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.vite_api_url
+  );
+  const configuredBackendOrigin = normalizeApiBase(
+    import.meta.env.VITE_BACKEND_URL ||
+    import.meta.env.VITE_PUBLIC_BACKEND_URL
+  );
+  const browserApiBase = normalizeApiBase(getBrowserApiBase());
+  const configuredBackendApiBase = configuredBackendOrigin
+    ? `${configuredBackendOrigin}/api`
+    : null;
+
+  return [
+    configuredApiBase,
+    browserApiBase,
+    configuredBackendApiBase,
+    STABLE_PRODUCTION_API_BASE_URL,
+    LOCAL_API_BASE_URL
+  ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index);
+};
+
+export const buildApiUrl = (baseUrl, endpoint = '') => {
+  const normalizedBaseUrl = normalizeApiBase(baseUrl);
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${normalizedBaseUrl}${normalizedEndpoint}`;
+};
+
+const API_BASE_URL = getApiBaseCandidates()[0] || LOCAL_API_BASE_URL;
 
 console.log('API Configuration:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
   vite_api_url: import.meta.env.vite_api_url,
-  API_BASE_URL: API_BASE_URL
+  API_BASE_URL: API_BASE_URL,
+  API_BASE_CANDIDATES: getApiBaseCandidates()
 });
 
 // API endpoints
@@ -77,7 +140,7 @@ export const getFileUploadHeaders = (includeAuth = true) => {
 
 // Generic API request function
 export const apiRequest = async (endpoint, options = {}) => {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = buildApiUrl(API_BASE_URL, endpoint);
 
   const defaultOptions = {
     headers: getDefaultHeaders(options.includeAuth !== false),
@@ -157,7 +220,7 @@ export const apiRequest = async (endpoint, options = {}) => {
 
 // API request function for file uploads
 export const apiFileUpload = async (endpoint, formData, options = {}) => {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = buildApiUrl(API_BASE_URL, endpoint);
 
   const defaultOptions = {
     method: 'POST',

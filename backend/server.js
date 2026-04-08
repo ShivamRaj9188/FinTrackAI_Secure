@@ -106,6 +106,7 @@ const { sendWelcomeEmail } = require('./emailService');
 
 // Create Express app
 const app = express();
+app.set('trust proxy', 1);
 
 // Basic middleware (what our app needs to work)
 app.use(express.json({ limit: '10mb' })); // To read JSON data with size limit

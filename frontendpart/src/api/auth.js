@@ -1,20 +1,72 @@
-import { API_BASE_URL, API_ENDPOINTS, getDefaultHeaders } from './config.js';
+import {
+  API_BASE_URL,
+  API_ENDPOINTS,
+  buildApiUrl,
+  getApiBaseCandidates,
+  getDefaultHeaders
+} from './config.js';
+
+const parseJsonResponse = async (response) => {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+};
+
+const shouldRetryWithAnotherBase = (response) => {
+  if (!response) {
+    return true;
+  }
+
+  return response.status === 404 || response.status >= 500;
+};
+
+const performAuthRequest = async (endpoint, body) => {
+  const apiBaseCandidates = getApiBaseCandidates();
+  let lastError = new Error('Authentication service is unavailable right now');
+
+  for (let index = 0; index < apiBaseCandidates.length; index += 1) {
+    const apiBase = apiBaseCandidates[index];
+
+    try {
+      const response = await fetch(buildApiUrl(apiBase, endpoint), {
+        method: 'POST',
+        headers: getDefaultHeaders(false),
+        body: JSON.stringify(body),
+      });
+
+      const result = await parseJsonResponse(response);
+
+      if (!response.ok) {
+        const error = new Error(result?.message || 'Authentication failed');
+
+        if (index < apiBaseCandidates.length - 1 && shouldRetryWithAnotherBase(response)) {
+          lastError = error;
+          continue;
+        }
+
+        error.retryable = false;
+        throw error;
+      }
+
+      return result;
+    } catch (error) {
+      lastError = error;
+
+      if (error.retryable === false || index === apiBaseCandidates.length - 1) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+};
 
 // User login
 export const login = async (email, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
-      method: 'POST',
-      headers: getDefaultHeaders(false),
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Login failed');
-    }
-
-    const result = await response.json();
+    const result = await performAuthRequest(API_ENDPOINTS.LOGIN, { email, password });
     if (result.token) {
       localStorage.setItem('authToken', result.token);
       localStorage.setItem('userInfo', JSON.stringify(result.user));
@@ -31,7 +83,7 @@ export const login = async (email, password) => {
     return {
       success: false,
       error: error.message,
-      message: 'Failed to login'
+      message: error.message || 'Failed to login'
     };
   }
 };
@@ -39,18 +91,7 @@ export const login = async (email, password) => {
 // User registration
 export const register = async (userData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.REGISTER}`, {
-      method: 'POST',
-      headers: getDefaultHeaders(false),
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Registration failed');
-    }
-
-    const result = await response.json();
+    const result = await performAuthRequest(API_ENDPOINTS.REGISTER, userData);
     if (result.token) {
       localStorage.setItem('authToken', result.token);
       localStorage.setItem('userInfo', JSON.stringify(result.user));
@@ -67,7 +108,7 @@ export const register = async (userData) => {
     return {
       success: false,
       error: error.message,
-      message: 'Failed to register'
+      message: error.message || 'Failed to register'
     };
   }
 };
@@ -118,16 +159,19 @@ export const logout = async () => {
       method: 'POST',
       headers: getDefaultHeaders(),
     });
-  } finally {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminInfo');
-    return {
-      success: true,
-      message: 'Logged out successfully'
-    };
+  } catch {
+    // Local auth state should still be cleared even if the backend logout call fails.
   }
+
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('userInfo');
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminInfo');
+
+  return {
+    success: true,
+    message: 'Logged out successfully'
+  };
 };
 
 // Verify token validity

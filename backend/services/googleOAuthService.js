@@ -24,7 +24,14 @@ const getBackendUrl = (req) => {
   }
 
   if (req) {
-    return `${req.protocol}://${req.get('host')}`.replace(/\/$/, '');
+    const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim();
+    const forwardedHost = req.get('x-forwarded-host')?.split(',')[0]?.trim();
+    const protocol = forwardedProto || req.protocol || 'http';
+    const host = forwardedHost || req.get('host');
+
+    if (host) {
+      return `${protocol}://${host}`.replace(/\/$/, '');
+    }
   }
 
   return 'http://localhost:8000';

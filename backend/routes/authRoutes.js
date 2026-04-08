@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
+const { getFrontendUrl } = require('../services/googleOAuthService');
 
 // Google Auth Routes
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -9,9 +10,11 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login', session: false }),
   (req, res) => {
+    const frontendUrl = getFrontendUrl();
+
     // Check if account is active
     if (req.user.status === 'Inactive') {
-      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=deactivated`);
+      return res.redirect(`${frontendUrl}/login?error=deactivated`);
     }
 
     // Generate JWT token
@@ -35,10 +38,7 @@ router.get('/google/callback',
     console.log('Google auth callback - user info:', userInfo);
 
     // Render deployment redirect handling
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-
-    // Direct redirect for Render (works better than postMessage)
-    const redirectUrl = `${frontendUrl}/dashboard?token=${token}&user=${encodeURIComponent(JSON.stringify(userInfo))}`;
+    const redirectUrl = `${frontendUrl}/auth/success?token=${token}&user=${encodeURIComponent(JSON.stringify(userInfo))}`;
     console.log('Redirecting to frontend URL:', redirectUrl);
     res.redirect(redirectUrl);
   }
