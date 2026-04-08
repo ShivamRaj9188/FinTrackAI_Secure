@@ -27,6 +27,9 @@ Secure user onboarding is handled via traditional email/password registration or
 ### Secure Data Processing
 The backend is engineered for high-volume data handling, including CSV and PDF bank statement extraction. It utilizes a robust serverless architecture with managed MongoDB Atlas for persistent storage and dynamic connection pooling.
 
+### Validated Ingestion and Categorization
+The upgraded platform now supports additive CSV/PDF ingestion jobs with validation summaries, preview rows, structured MongoDB storage metadata, and lightweight expense categorization using rule-based matching plus TF-IDF-style scoring.
+
 ### Visualized Insights
 A premium dashcard-driven interface provides real-time visualizations of weekly spending, savings growth, and categorical expenditure breakdowns using modern CSS-in-JS and optimized React components.
 
@@ -65,6 +68,8 @@ FinTrackAI_Secure/
 2. Configure the `.env` file with the following environment variables:
    - `MONGODB_URI`: Connection string for your MongoDB instance.
    - `JWT_SECRET`: Secure string for token signing.
+   - `FRONTEND_URL`: Frontend origin used for redirects.
+   - `BACKEND_URL`: Public backend base URL for OAuth callback generation.
    - `GEMINI_API_KEY`: API key for Google Gemini model access.
    - `GOOGLE_CLIENT_ID`: OAuth 2.0 client ID for Google Sign-In.
    - `GOOGLE_CLIENT_SECRET`: OAuth 2.0 client secret.
@@ -85,6 +90,53 @@ FinTrackAI_Secure/
    ```bash
    npm run dev
    ```
+
+---
+
+## Additive Upgrade Modules
+
+The current codebase includes the following additive modules without replacing the original stable flows:
+
+- **Google OAuth metadata routing** for safer frontend login/signup startup
+- **Validated ingestion service** for CSV/PDF uploads with preview and warning summaries
+- **Categorization service** with lightweight ML-style scoring and rule fallback
+- **Insights analytics engine** for savings, category, and dashboard summaries
+- **Enhanced dashboard widgets** for spending, savings, and category intelligence
+
+Legacy auth, upload, report, and transaction endpoints remain available for backward compatibility.
+
+## New API Endpoints
+
+### Auth
+- `GET /api/auth/google/url`
+
+### Ingestion
+- `POST /api/ingestion/upload`
+- `GET /api/ingestion/:id`
+
+### Categorization
+- `POST /api/categorization/preview`
+- `POST /api/categorization/run`
+
+### Analytics
+- `GET /api/insights/summary`
+- `GET /api/insights/categories`
+- `GET /api/insights/savings`
+- `GET /api/insights/dashboard`
+
+## Verification Commands
+
+### Backend smoke tests
+```bash
+cd backend
+npm test
+```
+
+### Frontend production build
+```bash
+cd frontendpart
+npm run build
+```
 
 ---
 

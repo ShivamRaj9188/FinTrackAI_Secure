@@ -1,0 +1,19 @@
+Upgrade FinTrackAI without disrupting the deployed user flows
+
+This change adds a modular ingestion, categorization, analytics, and
+Google OAuth metadata layer on top of the existing MERN application
+without replacing the current authentication, upload, reporting, or
+dashboard flows. New capabilities were introduced through additive
+routes, services, and UI widgets so the deployed system remains
+operational even if any single new module is unavailable.
+
+Constraint: Existing deployed APIs and routes had to remain backward compatible
+Constraint: No new dependencies were introduced for categorization or testing
+Rejected: Replacing legacy upload endpoints with ingestion endpoints | too risky for the live deployment
+Rejected: Rewriting dashboard data flow around only new analytics endpoints | could break stable screens
+Confidence: high
+Scope-risk: moderate
+Reversibility: clean
+Directive: Keep new capabilities additive; do not remove legacy auth/upload/report flows without production verification
+Tested: Backend smoke tests via npm test, backend syntax checks, frontend production build, protected-route auth checks, OAuth metadata endpoint check
+Not-tested: Full browser E2E against the live deployment, bank-specific PDF variants beyond current parser assumptions
