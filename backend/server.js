@@ -21,6 +21,10 @@ const adminLogin = require('./authentication/adminLogin');
 // Import Google authentication
 const passport = require('./googleAuth');
 const authRoutes = require('./routes/authRoutes');
+const googleOAuthMetadataRoutes = require('./routes/googleOAuthMetadataRoutes');
+const ingestionRoutes = require('./routes/ingestionRoutes');
+const categorizationRoutes = require('./routes/categorizationRoutes');
+const insightsAnalyticsRoutes = require('./routes/insightsAnalyticsRoutes');
 
 // Import dashboard functions
 const { verifyToken, getDashboardData, updateProfile } = require('./dashboard');
@@ -241,6 +245,10 @@ app.post('/api/auth/admin/login', loginValidation, adminLogin); // Admin login (
 
 // Google Authentication Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', googleOAuthMetadataRoutes);
+app.use('/api/ingestion', ingestionRoutes);
+app.use('/api/categorization', categorizationRoutes);
+app.use('/api/insights', insightsAnalyticsRoutes);
 
 // Endpoint to check if Google Auth is configured (for frontend UI)
 app.get('/api/auth/google/status', (req, res) => {
