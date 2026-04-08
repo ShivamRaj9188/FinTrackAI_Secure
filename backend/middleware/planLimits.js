@@ -92,15 +92,23 @@ const checkFeatureAccess = (feature) => {
 // Helper function to count uploads (you'll need to implement based on your upload model)
 const getUploadCount = async (userId, startDate) => {
   try {
-    // Replace with your actual upload model/collection
-    const Upload = require('../models/Upload'); // Adjust path as needed
-    return await Upload.countDocuments({
-      userId: userId,
+    const IngestionJob = require('../models/IngestionJob');
+    return await IngestionJob.countDocuments({
+      user: userId,
       createdAt: { $gte: startDate }
     });
   } catch (error) {
-    console.warn('Upload count error:', error);
-    return 0;
+    try {
+      // Legacy fallback for older deployments that may still persist Upload docs
+      const Upload = require('../models/Upload');
+      return await Upload.countDocuments({
+        userId: userId,
+        createdAt: { $gte: startDate }
+      });
+    } catch (legacyError) {
+      console.warn('Upload count error:', legacyError.message || legacyError);
+      return 0;
+    }
   }
 };
 
