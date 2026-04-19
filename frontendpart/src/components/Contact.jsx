@@ -72,9 +72,9 @@ const Contact = () => {
               <p className="text-2xl font-black text-white uppercase leading-tight mb-8">ENGINEERED FOR DIALOGUE.</p>
               <div className="space-y-8">
                 {[
-                  { icon: "fa-location-dot", label: "HQ", text: "Moonshine St. 14/05, London" },
-                  { icon: "fa-phone", label: "SIGNAL", text: "00 (123) 456 78 90" },
-                  { icon: "fa-terminal", label: "LINK", text: "support@fintrackai.com" }
+                  { icon: "fa-location-dot", label: "HQ", text: "Uttarakhand, India" },
+                  { icon: "fa-phone", label: "SIGNAL", text: "+91 63996 66608" },
+                  { icon: "fa-terminal", label: "LINK", text: "ashish.raj.00099@gmail.com" }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-6">
                     <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white">
