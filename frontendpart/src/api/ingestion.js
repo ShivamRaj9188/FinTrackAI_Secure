@@ -15,9 +15,21 @@ export const uploadValidatedStatement = async (file) => {
       body: formData
     });
 
+    // Plan limit hit (403) — return structured object so Upload UI shows upgrade banner
+    if (response.status === 403) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        planLimit: true,
+        message: errorData.message || 'Upload limit reached',
+        currentPlan: errorData.currentPlan,
+        upgradeRequired: true,
+      };
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Validated ingestion failed');
+      return { success: false, message: errorData.message || 'Validated ingestion failed' };
     }
 
     const result = await response.json();
@@ -32,6 +44,7 @@ export const uploadValidatedStatement = async (file) => {
       message: result.message || 'Statement ingested successfully'
     };
   } catch (error) {
+    // Network-level error: fall back to legacy upload
     const fallback = await uploadFile(file);
     return {
       ...fallback,
