@@ -1,21 +1,46 @@
 import { API_BASE_URL, getDefaultHeaders, getFileUploadHeaders } from './config.js';
 import { uploadFile } from './upload.js';
 
-export const uploadValidatedStatement = async (file) => {
+const mapIngestionResponse = (result) => ({
+  success: true,
+  fileId: result.uploadId,
+  ingestionJobId: result.jobId,
+  validationSummary: result.data?.summary || null,
+  preview: result.data?.preview || [],
+  warnings: result.data?.warnings || [],
+  message: result.message || 'Statement ingested successfully'
+});
+
+const mapPasswordChallenge = (result) => ({
+  success: false,
+  requiresPassword: true,
+  code: result.code || 'PDF_PASSWORD_REQUIRED',
+  message: result.message || 'This PDF is password-protected. Enter the statement password to continue.',
+  fileId: result.uploadId,
+  ingestionJobId: result.jobId,
+  remainingAttempts: result.remainingAttempts,
+  validationSummary: result.data?.summary || null,
+  preview: result.data?.preview || [],
+  warnings: result.data?.warnings || []
+});
+
+export const uploadValidatedStatement = async (file, password = '') => {
   const formData = new FormData();
   formData.append('file', file);
+  if (password) {
+    formData.append('password', password);
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/ingestion/upload`, {
       method: 'POST',
       headers: {
         ...getFileUploadHeaders(),
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        Authorization: `Bearer ${localStorage.getItem('authToken')}`
       },
       body: formData
     });
 
-    // Plan limit hit (403) — return structured object so Upload UI shows upgrade banner
     if (response.status === 403) {
       const errorData = await response.json().catch(() => ({}));
       return {
@@ -23,28 +48,26 @@ export const uploadValidatedStatement = async (file) => {
         planLimit: true,
         message: errorData.message || 'Upload limit reached',
         currentPlan: errorData.currentPlan,
-        upgradeRequired: true,
+        upgradeRequired: true
       };
     }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return { success: false, message: errorData.message || 'Validated ingestion failed' };
+    const result = await response.json().catch(() => ({}));
+
+    if (response.status === 409 && result.requiresPassword) {
+      return mapPasswordChallenge(result);
     }
 
-    const result = await response.json();
+    if (!response.ok) {
+      return {
+        success: false,
+        code: result.code,
+        message: result.message || 'Validated ingestion failed'
+      };
+    }
 
-    return {
-      success: true,
-      fileId: result.uploadId,
-      ingestionJobId: result.jobId,
-      validationSummary: result.data?.summary || null,
-      preview: result.data?.preview || [],
-      warnings: result.data?.warnings || [],
-      message: result.message || 'Statement ingested successfully'
-    };
-  } catch (error) {
-    // Network-level error: fall back to legacy upload
+    return mapIngestionResponse(result);
+  } catch {
     const fallback = await uploadFile(file);
     return {
       ...fallback,
@@ -54,6 +77,30 @@ export const uploadValidatedStatement = async (file) => {
       warnings: []
     };
   }
+};
+
+export const submitStatementPassword = async (jobId, password) => {
+  const response = await fetch(`${API_BASE_URL}/ingestion/${jobId}/password`, {
+    method: 'POST',
+    headers: getDefaultHeaders(),
+    body: JSON.stringify({ password })
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (response.status === 409 && result.requiresPassword) {
+    return mapPasswordChallenge(result);
+  }
+
+  if (!response.ok) {
+    return {
+      success: false,
+      code: result.code,
+      message: result.message || 'Failed to unlock statement'
+    };
+  }
+
+  return mapIngestionResponse(result);
 };
 
 export const getIngestionStatus = async (jobId) => {

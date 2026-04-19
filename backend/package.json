@@ -7,8 +7,9 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "echo 'No build step required'",
-    "test": "node scripts/smoke-tests.js",
-    "test:smoke": "node scripts/smoke-tests.js"
+    "test": "node scripts/smoke-tests.js && node scripts/test-ingestion-fix.js",
+    "test:smoke": "node scripts/smoke-tests.js",
+    "test:ingestion": "node scripts/test-ingestion-fix.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

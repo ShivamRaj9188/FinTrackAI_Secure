@@ -1,11 +1,13 @@
 const express = require('express');
 
 const strictAuthMiddleware = require('../middleware/strictAuth');
-const { upload, uploadStatement, getIngestionStatus } = require('../controllers/ingestionController');
+const { checkUploadLimit } = require('../middleware/planLimits');
+const { upload, uploadStatement, submitStatementPassword, getIngestionStatus } = require('../controllers/ingestionController');
 
 const router = express.Router();
 
-router.post('/upload', strictAuthMiddleware, upload.single('file'), uploadStatement);
+router.post('/upload', strictAuthMiddleware, checkUploadLimit, upload.single('file'), uploadStatement);
+router.post('/:id/password', strictAuthMiddleware, submitStatementPassword);
 router.get('/:id', strictAuthMiddleware, getIngestionStatus);
 
 module.exports = router;

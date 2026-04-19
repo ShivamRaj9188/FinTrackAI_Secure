@@ -1,5 +1,7 @@
 const User = require('../authentication/User');
 
+const COUNTABLE_INGESTION_STATUSES = ['completed', 'completed_with_warnings'];
+
 // Plan limits configuration
 const PLAN_LIMITS = {
   Basic: {
@@ -95,7 +97,8 @@ const getUploadCount = async (userId, startDate) => {
     const IngestionJob = require('../models/IngestionJob');
     return await IngestionJob.countDocuments({
       user: userId,
-      createdAt: { $gte: startDate }
+      createdAt: { $gte: startDate },
+      status: { $in: COUNTABLE_INGESTION_STATUSES }
     });
   } catch (error) {
     try {
@@ -144,5 +147,6 @@ module.exports = {
   checkUploadLimit,
   checkFeatureAccess,
   getUserPlanLimits,
-  PLAN_LIMITS
+  PLAN_LIMITS,
+  COUNTABLE_INGESTION_STATUSES
 };

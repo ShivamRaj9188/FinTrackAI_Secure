@@ -1,14 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { uploadValidatedStatement, generateReport } from '../api';
+import { uploadValidatedStatement, submitStatementPassword, generateReport } from '../api';
 import { getPlanLimits } from '../api/payment';
 import PaymentModal from '../components/PaymentModal';
 
 const Upload = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [filePassword, setFilePassword] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [fileId, setFileId] = useState(null);
+  const [pendingJobId, setPendingJobId] = useState(null);
+  const [passwordRequired, setPasswordRequired] = useState(false);
+  const [remainingPasswordAttempts, setRemainingPasswordAttempts] = useState(null);
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -53,6 +59,14 @@ const Upload = () => {
 
   const validateAndSetFile = (file) => {
     setError('');
+    setFileId(null);
+    setPendingJobId(null);
+    setPasswordRequired(false);
+    setRemainingPasswordAttempts(null);
+    setValidationSummary(null);
+    setValidationPreview([]);
+    setIngestionWarnings([]);
+    setLegacyFallbackUsed(false);
     const validTypes = ['application/pdf', 'text/csv', 'application/vnd.ms-excel'];
     const maxSize = 5 * 1024 * 1024;
     if (!validTypes.includes(file.type) && !file.name.match(/\.(pdf|csv)$/i)) {
@@ -63,7 +77,9 @@ const Upload = () => {
       setError('File size must be under 5MB');
       return;
     }
+    setSelectedFile(file);
     setFileName(file.name);
+    setFilePassword('');
   };
 
   const handleDrag = (e) => {
@@ -87,7 +103,7 @@ const Upload = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    const file = fileInputRef.current?.files[0];
+    const file = selectedFile || fileInputRef.current?.files[0];
     if (!file) return;
 
     setUploading(true);
@@ -103,16 +119,25 @@ const Upload = () => {
     }, 300);
 
     try {
-      const result = await uploadValidatedStatement(file);
+      const result = await uploadValidatedStatement(file, filePassword);
       clearInterval(progressInterval);
-      setUploadProgress(100);
 
       if (result.success) {
+        setUploadProgress(100);
         setFileId(result.fileId);
+        setPendingJobId(null);
+        setPasswordRequired(false);
+        setRemainingPasswordAttempts(null);
         setValidationSummary(result.validationSummary);
         setValidationPreview(result.preview || []);
         setIngestionWarnings(result.warnings || []);
         setLegacyFallbackUsed(Boolean(result.fallbackUsed));
+      } else if (result.requiresPassword) {
+        setUploadProgress(0);
+        setPendingJobId(result.ingestionJobId);
+        setPasswordRequired(true);
+        setRemainingPasswordAttempts(result.remainingAttempts ?? null);
+        setError(result.code === 'INCORRECT_PDF_PASSWORD' ? (result.message || 'Incorrect PDF password. Please try again.') : '');
       } else if (result.planLimit) {
         // Backend returned 403 plan limit
         setLimitReached(true);
@@ -128,6 +153,38 @@ const Upload = () => {
       setUploadProgress(0);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!pendingJobId) return;
+
+    setUnlocking(true);
+    setError('');
+
+    try {
+      const result = await submitStatementPassword(pendingJobId, filePassword);
+
+      if (result.success) {
+        setFileId(result.fileId);
+        setPendingJobId(null);
+        setPasswordRequired(false);
+        setRemainingPasswordAttempts(null);
+        setValidationSummary(result.validationSummary);
+        setValidationPreview(result.preview || []);
+        setIngestionWarnings(result.warnings || []);
+      } else if (result.requiresPassword) {
+        setPasswordRequired(true);
+        setRemainingPasswordAttempts(result.remainingAttempts ?? null);
+        setError(result.code === 'INCORRECT_PDF_PASSWORD' ? (result.message || 'Incorrect PDF password. Please try again.') : '');
+      } else {
+        setError(result.message || 'Failed to unlock statement');
+      }
+    } catch {
+      setError('Failed to unlock statement. Please try again.');
+    } finally {
+      setUnlocking(false);
     }
   };
 
@@ -148,6 +205,7 @@ const Upload = () => {
   const uploadsUsed = planLimits?.usage?.uploadsThisMonth ?? 0;
   const uploadsMax = planLimits?.limits?.maxUploadsPerMonth ?? 5;
   const isUnlimited = uploadsMax === -1;
+  const isPdfFile = /\.pdf$/i.test(fileName);
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
@@ -324,6 +382,25 @@ const Upload = () => {
                 </div>
               )}
 
+              {!uploading && fileName && isPdfFile && (
+                <div className="mt-6 max-w-sm mx-auto text-left" onClick={(e) => e.stopPropagation()}>
+                  <label htmlFor="statement-password" className="block text-[10px] text-[#777] font-bold uppercase tracking-wider mb-2">
+                    Statement Password
+                  </label>
+                  <input
+                    id="statement-password"
+                    type="password"
+                    value={filePassword}
+                    onChange={(e) => setFilePassword(e.target.value)}
+                    placeholder="Enter password if this PDF is protected"
+                    className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-[#555] focus:outline-none focus:border-[var(--accent-primary)]"
+                  />
+                  <p className="text-[10px] text-[#666] mt-2">
+                    Used only to open this statement for this upload. It is never stored.
+                  </p>
+                </div>
+              )}
+
               {!uploading && fileName && (
                 <button
                   onClick={(e) => { e.stopPropagation(); handleUpload(e); }}
@@ -342,6 +419,43 @@ const Upload = () => {
         <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 p-4 rounded-xl animate-fade-in">
           <i className="fas fa-exclamation-circle text-red-400 text-sm" />
           <span className="text-red-400 text-sm font-medium">{error}</span>
+        </div>
+      )}
+
+      {passwordRequired && !fileId && (
+        <div className="cashmate-card border border-yellow-500/20 bg-yellow-500/5 p-6 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-yellow-500/10 flex items-center justify-center shrink-0">
+              <i className="fas fa-lock text-yellow-400 text-lg" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-bold text-white">Password Required</h3>
+              <p className="text-sm text-[#888] mt-1">
+                This statement is password-protected. Enter the password to continue processing. We only use it for this upload and never store it.
+              </p>
+              {remainingPasswordAttempts !== null && (
+                <p className="text-[11px] text-yellow-400 mt-2 font-medium">
+                  {remainingPasswordAttempts} password attempt{remainingPasswordAttempts === 1 ? '' : 's'} remaining
+                </p>
+              )}
+              <form onSubmit={handlePasswordSubmit} className="mt-4 flex flex-col sm:flex-row gap-3">
+                <input
+                  type="password"
+                  value={filePassword}
+                  onChange={(e) => setFilePassword(e.target.value)}
+                  placeholder="Enter statement password"
+                  className="flex-1 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-[#555] focus:outline-none focus:border-[var(--accent-primary)]"
+                />
+                <button
+                  type="submit"
+                  disabled={unlocking || !filePassword}
+                  className="btn-primary px-6 py-3 rounded-2xl text-sm disabled:opacity-50"
+                >
+                  {unlocking ? 'UNLOCKING...' : 'UNLOCK PDF'}
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
       )}
 
