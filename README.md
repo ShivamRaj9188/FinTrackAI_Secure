@@ -23,9 +23,9 @@ The platform integrates the Google Gemini Pro Large Language Model (LLM) to perf
 ### ML-Enhanced Categorization Engine
 FinTrackAI utilizes a hybrid categorization system combining deterministic rule-based matching with probabilistic scoring models. This engine automatically assigns labels to transactions based on merchant signatures and historical data.
 ### Advanced Data Ingestion and Validation
-The system features a robust ingestion pipeline for CSV and PDF financial records. Every upload undergoes a multi-stage validation process that includes schema verification, row-level integrity checks, and preview generation.
+The system features a robust ingestion pipeline for CSV and PDF financial records. The custom PDF extraction engine utilizes a dynamic multi-line lookahead algorithm and Y-axis coordinate clustering to flawlessly reconstruct fractured tables and word-wrapped bank statements. Furthermore, it securely processes encrypted, password-protected statements through an interactive 409-conflict unlocking protocol without persisting user credentials. Every upload undergoes a multi-stage validation process that includes schema verification, row-level integrity checks, and preview generation.
 ### Secure Payment Gateway and Subscription Management
-Integrated with the Razorpay ecosystem, FinTrackAI manages professional subscription tiers (Basic, Pro, and Enterprise). The implementation supports real-time order creation, secure terminal checkout, and server-side HMAC-SHA256 signature verification.
+Integrated with the Razorpay ecosystem, FinTrackAI manages professional subscription tiers (Basic, Pro, and Enterprise). The implementation supports real-time order creation, secure terminal checkout, and server-side HMAC-SHA256 signature verification. A deterministic environment-bypass matrix is additionally integrated at the middleware level to securely unlock scalable Enterprise testing capabilities for authorized recruiters and demonstration accounts.
 ### Dynamic Insights and Analytics
 A high-performance dashboard provides real-time visualizations of categorical expenditure, weekly spending velocity, and savings projections. The analytics layer aggregates thousands of data points into high-level summaries.
 ### Multi-Factor Authentication and Security
@@ -84,6 +84,7 @@ FinTrackAI_Secure/
 - `GET /api/subscription/status`: Real-time entitlement check.
 ### Data Ingestion Endpoints
 - `POST /api/ingestion/upload`: Secure file ingestion (PDF/CSV).
+- `POST /api/ingestion/:id/password`: Securely manages decryption challenges for locked PDF statements.
 - `GET /api/ingestion/:id`: Job status and validation summary.
 ### Analytics Endpoints
 - `GET /api/insights/dashboard`: Aggregated financial summary.
