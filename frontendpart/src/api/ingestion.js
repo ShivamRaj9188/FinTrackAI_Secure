@@ -68,7 +68,7 @@ export const uploadValidatedStatement = async (file, password = '') => {
 
     return mapIngestionResponse(result);
   } catch {
-    const fallback = await uploadFile(file);
+    const fallback = await uploadFile(file, password);
     return {
       ...fallback,
       fallbackUsed: true,

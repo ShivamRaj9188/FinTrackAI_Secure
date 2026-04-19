@@ -1,13 +1,16 @@
 import { API_BASE_URL, API_ENDPOINTS, getFileUploadHeaders, getDefaultHeaders } from './config.js';
 
 // Upload file to backend
-export const uploadFile = async (file, onProgress = null) => {
+export const uploadFile = async (file, password = '') => {
   try {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('fileType', file.type);
     formData.append('fileName', file.name);
     formData.append('fileSize', file.size);
+    if (password) {
+      formData.append('password', password);
+    }
 
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPLOAD_FILE}`, {
       method: 'POST',
@@ -17,6 +20,13 @@ export const uploadFile = async (file, onProgress = null) => {
       },
       body: formData,
     });
+
+    if (response.status === 409) {
+      const result = await response.json();
+      if (result.requiresPassword) {
+         return result;
+      }
+    }
 
     if (!response.ok) {
       const errorData = await response.json();

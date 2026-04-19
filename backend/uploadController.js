@@ -74,17 +74,45 @@ const uploadTransactions = async (req, res) => {
     if (isPDF) {
       try {
         console.log('Processing PDF with userId:', userId);
-        transactions = await extractTransactionsFromPDF(filePath, userId, uploadId);
+        
+        // Pass optional password from request body
+        const options = {};
+        if (req.body.password) {
+           options.password = req.body.password;
+        }
+
+        transactions = await extractTransactionsFromPDF(filePath, userId, uploadId, options);
         fs.unlinkSync(filePath);
         let saved = [];
         if (transactions.length) {
-          // Insert transactions
           saved = await Transaction.insertMany(transactions);
           console.log('Saved transactions:', saved.length);
         }
         return res.json({ success: true, message: 'PDF transactions extracted', data: saved, uploadId });
       } catch (pdfError) {
         console.error('PDF extraction error:', pdfError);
+        
+        // Handle password protected PDFs correctly
+        if (pdfError.code === 'PDF_PASSWORD_REQUIRED') {
+            return res.status(409).json({
+               success: false,
+               requiresPassword: true,
+               code: pdfError.code,
+               message: pdfError.message,
+               uploadId: uploadId
+            });
+        }
+        
+        if (pdfError.code === 'INCORRECT_PDF_PASSWORD') {
+            return res.status(409).json({
+               success: false,
+               requiresPassword: true,
+               code: pdfError.code,
+               message: pdfError.message,
+               uploadId: uploadId
+            });
+        }
+
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         return res.status(500).json({ success: false, message: 'PDF extraction error', error: pdfError });
       }
