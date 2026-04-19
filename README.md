@@ -8,9 +8,14 @@ The application is deployed and accessible at the following production endpoint:
 
 ## Visual Previews
 ### Landing Page Interface
-![FinTrackAI Landing Page](./docs/previews/landing-page-preview.png)
+<p align="center">
+  <img src="./docs/previews/landing-page-preview.png" alt="FinTrackAI Landing Page" width="900" />
+</p>
+
 ### User Dashboard Interface
-![FinTrackAI User Dashboard](./docs/previews/dashboard-preview.png)
+<p align="center">
+  <img src="./docs/previews/dashboard-preview.svg" alt="FinTrackAI User Dashboard" width="900" />
+</p>
 
 ## Core Capabilities
 ### AI-Driven Financial Intelligence
