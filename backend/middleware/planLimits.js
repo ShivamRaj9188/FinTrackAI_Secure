@@ -1,5 +1,12 @@
 const User = require('../authentication/User');
 
+const DEMO_EMAILS = [
+  'ashish.raj.00099@gmail.com',
+  'ashishraj26@gmail.com',
+  'demo@fintrackai.com',
+  'recruiter@fintrackai.com'
+];
+
 const COUNTABLE_INGESTION_STATUSES = ['completed', 'completed_with_warnings'];
 
 // Plan limits configuration
@@ -35,7 +42,12 @@ const PLAN_LIMITS = {
 const checkUploadLimit = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    const userPlan = user.plan || 'Basic';
+    let userPlan = user.plan || 'Basic';
+    
+    if (DEMO_EMAILS.includes(user.email)) {
+      userPlan = 'Pro';
+    }
+
     const limits = PLAN_LIMITS[userPlan];
 
     if (limits.maxUploadsPerMonth === -1) {
@@ -69,7 +81,12 @@ const checkFeatureAccess = (feature) => {
   return async (req, res, next) => {
     try {
       const user = await User.findById(req.user.id);
-      const userPlan = user.plan || 'Basic';
+      let userPlan = user.plan || 'Basic';
+      
+      if (DEMO_EMAILS.includes(user.email)) {
+        userPlan = 'Pro';
+      }
+
       const limits = PLAN_LIMITS[userPlan];
 
       if (!limits[feature]) {
@@ -119,7 +136,12 @@ const getUploadCount = async (userId, startDate) => {
 const getUserPlanLimits = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const userPlan = user.plan || 'Basic';
+    let userPlan = user.plan || 'Basic';
+    
+    if (DEMO_EMAILS.includes(user.email)) {
+      userPlan = 'Pro';
+    }
+
     const limits = PLAN_LIMITS[userPlan];
 
     // Get current usage
