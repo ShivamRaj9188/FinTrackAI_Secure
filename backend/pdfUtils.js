@@ -101,29 +101,50 @@ const extractTransactionsFromPDF = async (filePath, userId, uploadId, options = 
     }
 
     let headerPassed = false;
+    let previousBalance = null;
 
     for (const line of lines) {
-      if (line.includes('Date') && line.includes('Narration') && line.includes('Balance')) {
+      if (line.includes('Date') && (line.includes('Narration') || line.includes('Description') || line.includes('Particulars')) && line.includes('Balance')) {
         headerPassed = true;
+        continue;
+      }
+
+      // Sometimes Opening Balance appears
+      if (line.toLowerCase().includes('opening balance')) {
+        const obMatch = line.match(/[\d,]+\.\d{2}/g);
+        if (obMatch && obMatch.length > 0) {
+          previousBalance = Number.parseFloat(obMatch[obMatch.length - 1].replace(/,/g, ''));
+        }
         continue;
       }
 
       if (!headerPassed) continue;
 
-      const dateMatch = line.match(/^(\d{2}-\d{2}-\d{4})/);
+      const dateMatch = line.match(/^(?:\d+\.?\s+|-\s+)?(\d{2}[-\s/][a-zA-Z]{3}[-\s/]\d{2,4}|\d{2}[-\s/]\d{2}[-\s/]\d{2,4})/);
       if (!dateMatch) continue;
 
       const dateStr = dateMatch[1];
-      const [day, month, year] = dateStr.split('-');
-      const date = new Date(`${year}-${month}-${day}`);
+      let date = new Date(dateStr.replace(/-/g, ' ').replace(/\//g, ' '));
+      
+      const ddmmyy = dateStr.match(/^(\d{2})[-\/](\d{2})[-\/](\d{2,4})$/);
+      if (ddmmyy) {
+        let [, day, month, year] = ddmmyy;
+        if (year.length === 2) year = `20${year}`;
+        date = new Date(`${year}-${month}-${day}`);
+      } else if (Number.isNaN(date.getTime())) {
+        date = new Date(dateStr);
+      }
 
-      const lineWithoutDate = line.substring(dateStr.length).trim();
-      const descriptionEndIndex = lineWithoutDate.search(/\d+\.\d{2}/);
+      if (Number.isNaN(date.getTime())) continue;
+
+      const lineWithoutDate = line.substring(dateMatch[0].length).trim();
+      const descriptionEndIndex = lineWithoutDate.search(/[\d,]+\.\d{2}/);
       if (descriptionEndIndex === -1) continue;
 
       const description = lineWithoutDate.substring(0, descriptionEndIndex).trim();
       const numbersText = lineWithoutDate.substring(descriptionEndIndex);
-      const numbers = numbersText.match(/\d+\.\d{2}/g) || [];
+      const rawNumbers = numbersText.match(/[\d,]+\.\d{2}/g) || [];
+      const numbers = rawNumbers.map(n => Number.parseFloat(n.replace(/,/g, '')));
 
       if (numbers.length < 2) continue;
 
@@ -133,44 +154,54 @@ const extractTransactionsFromPDF = async (filePath, userId, uploadId, options = 
       let type = null;
 
       if (numbers.length === 2) {
-        const amount = Number.parseFloat(numbers[0]);
-        balance = Number.parseFloat(numbers[1]);
+        const amount = numbers[0];
+        balance = numbers[1];
 
-        const lowerDescription = description.toLowerCase();
-        const isCredit = lowerDescription.includes('deposit') ||
-          lowerDescription.includes('salary') ||
-          lowerDescription.includes('transfer from') ||
-          lowerDescription.includes('refund') ||
-          lowerDescription.includes('credit') ||
-          lowerDescription.includes('cheque') ||
-          lowerDescription.includes('freelance') ||
-          lowerDescription.includes('cash');
+        // Infer credit/debit from running balance
+        if (previousBalance !== null) {
+          const diffCredit = (previousBalance + amount).toFixed(2);
+          const diffDebit = (previousBalance - amount).toFixed(2);
+          
+          if (balance.toFixed(2) === diffCredit) {
+            type = 'credit';
+            deposit = amount;
+          } else if (balance.toFixed(2) === diffDebit) {
+            type = 'debit';
+            withdrawal = amount;
+          }
+        }
 
-        const isDebit = !isCredit && (
-          lowerDescription.includes('withdrawal') ||
-          lowerDescription.includes('payment') ||
-          lowerDescription.includes('purchase') ||
-          lowerDescription.includes('atm') ||
-          lowerDescription.includes('pos') ||
-          lowerDescription.includes('bill') ||
-          lowerDescription.includes('recharge') ||
-          (lowerDescription.includes('upi') && !lowerDescription.includes('refund'))
-        );
+        if (!type) {
+          const lowerDescription = description.toLowerCase();
+          const isCredit = lowerDescription.includes('deposit') ||
+            lowerDescription.includes('salary') ||
+            lowerDescription.includes('refund') ||
+            lowerDescription.includes('credit');
 
-        if (isDebit) {
-          withdrawal = amount;
-          type = 'debit';
-        } else if (isCredit) {
-          deposit = amount;
-          type = 'credit';
-        } else {
-          withdrawal = amount;
-          type = 'debit';
+          const isDebit = !isCredit && (
+            lowerDescription.includes('withdrawal') ||
+            lowerDescription.includes('payment') ||
+            lowerDescription.includes('purchase') ||
+            lowerDescription.includes('atm') ||
+            lowerDescription.includes('upi') ||
+            lowerDescription.includes('bill')
+          );
+
+          if (isDebit) {
+            withdrawal = amount;
+            type = 'debit';
+          } else if (isCredit) {
+            deposit = amount;
+            type = 'credit';
+          } else {
+            withdrawal = amount;
+            type = 'debit';
+          }
         }
       } else {
-        withdrawal = Number.parseFloat(numbers[0]);
-        deposit = Number.parseFloat(numbers[1]);
-        balance = Number.parseFloat(numbers[2]);
+        withdrawal = numbers[0];
+        deposit = numbers[1];
+        balance = numbers[numbers.length - 1];
 
         if (withdrawal > 0) {
           type = 'debit';
@@ -178,6 +209,8 @@ const extractTransactionsFromPDF = async (filePath, userId, uploadId, options = 
           type = 'credit';
         }
       }
+
+      previousBalance = balance;
 
       if (type === 'debit' && withdrawal > 0) {
         transactions.push({
