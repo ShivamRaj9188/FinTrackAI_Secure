@@ -1,97 +1,105 @@
-# FinTrackAI: AI-Powered Financial Intelligence
+# FinTrackAI: Advanced Financial Intelligence and Analytics Platform
 
-FinTrackAI is a comprehensive financial technology platform designed to provide automated expense tracking and actionable financial insights using the Google Gemini AI engine. The platform is built on the MERN stack (MongoDB, Express, React, Node.js) with a high-performance Vite frontend and secure JWT-based authentication.
+FinTrackAI is a sophisticated financial technology ecosystem engineered to provide automated transaction tracking, intelligent expense categorization, and actionable financial insights. Powered by the Google Gemini AI engine, the platform transforms raw financial data from bank statements into a structured, analytical overview of spending habits and savings opportunities.
 
-## Live Application
-The production environment is accessible at the following URL:
+## Production Environment
+The application is deployed and accessible at the following production endpoint:
 [https://fin-track-ai-secure.vercel.app](https://fin-track-ai-secure.vercel.app)
 
-## Preview
+---
 
-### Landing Page
+## Visual Previews
 
+### Landing Page Interface
 ![FinTrackAI landing page preview](./docs/previews/landing-page-preview.png)
 
-### Features Section
-
+### Core Analytics Architecture
 ![FinTrackAI features section preview](./docs/previews/features-section-preview.png)
 
 ---
 
 ## Core Capabilities
 
-### AI-Driven Analytics
-The platform integrates with the Google Gemini Pro API to perform deep analysis of financial data. It identifies spending patterns, detects redundant subscriptions, and suggests optimization strategies with high precision and anti-hallucination guardrails.
+### AI-Driven Financial Intelligence
+The platform integrates the Google Gemini Pro Large Language Model (LLM) to perform deep semantic analysis of transaction histories. This engine identifies spending patterns, detects latent subscription models, and provides personalized optimization strategies. The implementation includes strict structural validation to ensure high precision and eliminate model hallucinations.
 
-### Payment Gateway & Subscriptions
-Integrated with **Razorpay**, FinTrackAI offers a seamless upgrade path from Basic to Pro/Enterprise plans. The system supports full order creation, secure checkout, and automated signature verification to manage user entitlements in real-time.
+### ML-Enhanced Categorization Engine
+FinTrackAI utilizes a hybrid categorization system combining deterministic rule-based matching with probabilistic scoring models. This engine automatically assigns labels to transactions based on merchant signatures and historical data, significantly reducing manual data entry for the end user.
 
-### Usage Limits & Plan Management
-- **Basic (Free)**: 5 statement uploads per month, standard dashboard, basic AI categorization.
-- **Pro (₹149/mo)**: Unlimited uploads, advanced AI insights, category trend analysis, savings summaries, and priority support.
-- **Enterprise**: Custom multi-user access, API integrations, and dedicated account management.
+### Advanced Data Ingestion and Validation
+The system features a robust ingestion pipeline for CSV and PDF financial records. Every upload undergoes a multi-stage validation process that includes schema verification, row-level integrity checks, and preview generation. This ensures that only sanitized and structured data is persisted within the MongoDB environment.
 
-### Account Management
-Secure user onboarding is handled via traditional email/password registration or Google OAuth 2.0. The authentication layer uses signed JWTs and bcrypt password hashing to ensure data privacy and integrity.
+### Secure Payment Gateway and Subscription Management
+Integrated with the Razorpay ecosystem, FinTrackAI manages professional subscription tiers (Basic, Pro, and Enterprise). The implementation supports real-time order creation, secure terminal checkout, and server-side HMAC-SHA256 signature verification to ensure secure entitlement management.
 
-### Validated Ingestion and Categorization
-The upgraded platform supports additive CSV/PDF ingestion jobs with validation summaries, preview rows, structured MongoDB storage metadata, and lightweight expense categorization using rule-based matching plus TF-IDF-style scoring.
+### Dynamic Insights and Analytics
+A high-performance dashboard provides real-time visualizations of categorical expenditure, weekly spending velocity, and savings projections. The analytics layer aggregates thousands of data points into high-level summaries, enabling users to make data-driven financial decisions.
+
+### Multi-Factor Authentication and Security
+The application supports secure onboarding via JSON Web Token (JWT) based email/password authentication or Google OAuth 2.0 integration. Password security is maintained through salted bcrypt hashing. The platform implementing several layers of security including XSS protection, rate limiting, and NoSQL injection guardrails.
 
 ---
 
 ## Technical Architecture
 
-### Directory Structure
+### Tech Stack
+- **Frontend**: React.js with Vite, optimized for high-performance rendering.
+- **Backend**: Node.js and Express.js, utilizing a modular controller-service architecture.
+- **Database**: MongoDB with Mongoose ODM for flexible document-based persistence.
+- **AI/ML**: Google Gemini Pro API for semantic financial analysis.
+- **Payments**: Razorpay API for secure global transactions.
 
+### System Directory Structure
 ```text
 FinTrackAI_Secure/
-├── backend/                # Node.js + Express API
-│   ├── authentication/     # Core logic for Login, Signup, and OAuth
-│   ├── controllers/        # Business logic for payments, uploads, etc.
-│   ├── models/             # Mongoose schemas for data persistence
-│   ├── utils/              # Cryptographic helpers and secret management
-│   └── server.js           # Service entry point and middleware configuration
+├── backend/                # Server-side logic and API infrastructure
+│   ├── authentication/     # Identity management and OAuth flows
+│   ├── controllers/        # Domain-specific business logic
+│   ├── middleware/         # Security, rate limiting, and plan validation
+│   ├── models/             # Data structure definitions (Mongoose)
+│   ├── services/           # External API integrations (AI, Email)
+│   └── server.js           # Main application entry point
 │
-└── frontendpart/           # React + Vite Client
+└── frontendpart/           # Client-side interface
     ├── src/
-    │   ├── api/            # Centralized API abstraction layer
-    │   ├── components/     # Reusable UI (PaymentModal, Pricing, etc.)
-    │   ├── Dashboard/      # Main application state and analytics
-    │   └── App.jsx         # Router and Suspense boundaries
+    │   ├── api/            # Centralized communication layer
+    │   ├── components/     # Modular UI architecture
+    │   ├── Dashboard/      # Analytics and state management
+    │   └── App.jsx         # Component orchestration and routing
 ```
 
 ---
 
 ## Local Development Setup
 
-### 1. Backend Service
-1. Navigate to the backend directory and install dependencies:
+### Backend Service Initialization
+1. Navigate to the backend directory:
    ```bash
    cd backend
    npm install
    ```
-2. Configure the `.env` file with the following environment variables:
-   - `MONGODB_URI`: Connection string for your MongoDB instance.
-   - `JWT_SECRET`: Secure string for token signing.
-   - `GEMINI_API_KEY`: API key for Google Gemini model access.
-   - `RAZORPAY_KEY_ID`: Razorpay public key for checkout.
-   - `RAZORPAY_KEY_SECRET`: Razorpay secret for signature verification.
-   - `GOOGLE_CLIENT_ID`: OAuth 2.0 client ID for Google Sign-In.
+2. Configure environmental variables in `.env`:
+   - `MONGODB_URI`: Primary database connection string.
+   - `JWT_SECRET`: Token signing key.
+   - `GEMINI_API_KEY`: Google AI credentials.
+   - `RAZORPAY_KEY_ID`: Payment gateway public identifier.
+   - `RAZORPAY_KEY_SECRET`: Payment gateway private key.
+   - `GOOGLE_CLIENT_ID`: OAuth 2.0 client ID.
    - `GOOGLE_CLIENT_SECRET`: OAuth 2.0 client secret.
-3. Start the service:
+3. Launch development instance:
    ```bash
    npm run dev
    ```
 
-### 2. Frontend Application
-1. Navigate to the frontend directory and install dependencies:
+### Frontend Application Initialization
+1. Navigate to the client directory:
    ```bash
    cd frontendpart
    npm install
    ```
-2. Configure the `.env` file in the `frontendpart` directory:
-   - `VITE_API_URL`: Path to the backend service (e.g., `http://localhost:8000/api`)
-3. Launch the development server:
+2. Define API path in `.env`:
+   - `VITE_API_URL`: Backend service endpoint.
+3. Launch client:
    ```bash
    npm run dev
    ```
@@ -113,31 +121,29 @@ FinTrackAI_Secure/
 ### Auth
 - `GET /api/auth/google/url`
 
-### Payments & Subscriptions
-- `POST /api/payment/create-order`: Create Razorpay order ID.
-- `POST /api/payment/verify`: Verify Razorpay signature and activate plan.
-- `GET /api/subscription/status`: Fetch current plan usage and expiry.
-- `GET /api/user/plan-limits`: Get specific max-limit/usage data.
+### Payment and Subscription Endpoints
+- `POST /api/payment/create-order`: Razorpay order orchestration.
+- `POST /api/payment/verify`: Transaction signature verification.
+- `GET /api/subscription/status`: Real-time entitlement check.
+- `GET /api/user/plan-limits`: Usage tracking and bandwidth check.
 
-### Ingestion
-- `POST /api/ingestion/upload`
-- `GET /api/ingestion/:id`
+### Data Ingestion Endpoints
+- `POST /api/ingestion/upload`: Secure file ingestion (PDF/CSV).
+- `GET /api/ingestion/:id`: Job status and validation summary.
 
-### Analytics
-- `GET /api/insights/summary`
-- `GET /api/insights/dashboard`
+### Analytics Endpoints
+- `GET /api/insights/dashboard`: Aggregated financial summary.
+- `GET /api/insights/categories`: Categorical spending breakdown.
 
 ---
 
-## Verification Commands
-
-### Backend smoke tests
+## Verification and Testing
+### Backend Smoke Tests
 ```bash
 cd backend
 npm test
 ```
-
-### Frontend production build
+### Frontend Production Build
 ```bash
 cd frontendpart
 npm run build
