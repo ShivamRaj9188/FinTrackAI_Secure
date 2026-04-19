@@ -12,12 +12,46 @@ const { categorizeTransactions } = require('./categorizationService');
 
 const MAX_PASSWORD_ATTEMPTS = 3;
 
-const parseCsvFile = (filePath) => {
+const parseCsvFile = async (filePath) => {
+  const buffer = await fs.promises.readFile(filePath);
+  let content = buffer.toString('utf8');
+  
+  if (content.charCodeAt(0) === 0xFEFF) {
+    content = content.slice(1);
+  }
+
+  const lines = content.split(/\r?\n/);
+  let headerLineIndex = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].toLowerCase();
+    
+    const parts = line.split(',');
+    
+    if (parts.length >= 3 && 
+      line.includes('date') &&
+      (line.includes('amount') ||
+        line.includes('debit') ||
+        line.includes('withdrawal') ||
+        line.includes('description') ||
+        line.includes('narration') ||
+        line.includes('particulars'))
+    ) {
+      headerLineIndex = i;
+      break;
+    }
+  }
+
+  const validContent = lines.slice(headerLineIndex).join('\n');
+
   return new Promise((resolve, reject) => {
     const rows = [];
+    const { Readable } = require('stream');
+    const rs = new Readable();
+    rs.push(validContent);
+    rs.push(null);
 
-    fs.createReadStream(filePath)
-      .pipe(csv())
+    rs.pipe(csv())
       .on('data', (row) => rows.push(row))
       .on('end', () => resolve(rows))
       .on('error', reject);

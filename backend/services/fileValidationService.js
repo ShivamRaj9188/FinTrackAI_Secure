@@ -11,14 +11,14 @@ const SUPPORTED_FILE_TYPES = {
   }
 };
 
-const DATE_KEYS = ['date', 'transaction date', 'transaction_date', 'value date'];
-const DESCRIPTION_KEYS = ['description', 'narration', 'details', 'remarks', 'merchant'];
-const AMOUNT_KEYS = ['amount', 'transaction amount', 'value'];
-const DEBIT_KEYS = ['debit', 'withdrawal', 'withdrawals'];
-const CREDIT_KEYS = ['credit', 'deposit', 'deposits'];
+const DATE_KEYS = ['date', 'transaction date', 'transaction_date', 'value date', 'txn date', 'posting date', 'effective date'];
+const DESCRIPTION_KEYS = ['description', 'narration', 'details', 'remarks', 'merchant', 'particulars', 'transaction details', 'chq/ref no.', 'reference'];
+const AMOUNT_KEYS = ['amount', 'transaction amount', 'value', 'txn amount'];
+const DEBIT_KEYS = ['debit', 'withdrawal', 'withdrawals', 'dr', 'withdrawal amount', 'withdrawal (dr)'];
+const CREDIT_KEYS = ['credit', 'deposit', 'deposits', 'cr', 'deposit amount', 'deposit (cr)'];
 const TYPE_KEYS = ['type', 'transaction type'];
 const CATEGORY_KEYS = ['category'];
-const BALANCE_KEYS = ['balance', 'closing balance'];
+const BALANCE_KEYS = ['balance', 'closing balance', 'available balance'];
 
 const normalizeText = (value) => {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -30,7 +30,7 @@ const parseAmount = (value) => {
   }
 
   const normalized = String(value || '')
-    .replace(/₹/g, '')
+    .replace(/[₹$€£]|Rs\.?|INR/gi, '')
     .replace(/,/g, '')
     .replace(/\((.*?)\)/, '-$1')
     .trim();
@@ -47,17 +47,21 @@ const parseOptionalAmount = (value) => {
 
 const parseDate = (value) => {
   if (!value) return null;
-  const parsed = new Date(value);
-  if (!Number.isNaN(parsed.getTime())) {
-    return parsed;
-  }
-
-  const compact = String(value).trim();
-  const ddmmyyyy = compact.match(/^(\d{2})[-/](\d{2})[-/](\d{4})$/);
-  if (ddmmyyyy) {
-    const [, day, month, year] = ddmmyyyy;
+  const str = String(value).trim();
+  
+  const ddmmyy = str.match(/^(\d{2})[-/](\d{2})[-/](\d{2,4})$/);
+  if (ddmmyy) {
+    let [, day, month, year] = ddmmyy;
+    if (year.length === 2) {
+      year = `20${year}`;
+    }
     const next = new Date(`${year}-${month}-${day}`);
     if (!Number.isNaN(next.getTime())) return next;
+  }
+
+  const parsed = new Date(str);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
   }
 
   return null;
