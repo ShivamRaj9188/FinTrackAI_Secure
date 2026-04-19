@@ -1,169 +1,303 @@
+const crypto = require('crypto');
 const User = require('./authentication/User');
 const Payment = require('./models/Payment');
 
-// Process payment after Razorpay success
-const processPayment = async (req, res) => {
+// ---------------------------------------------------------------------------
+// Razorpay SDK initialisation (lazy so server starts even without keys)
+// ---------------------------------------------------------------------------
+let razorpayInstance = null;
+
+const getRazorpay = () => {
+  if (razorpayInstance) return razorpayInstance;
+
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!keyId || !keySecret || keyId === 'YOUR_RAZORPAY_KEY_ID') {
+    throw new Error(
+      'Razorpay keys are not configured. ' +
+      'Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in backend/.env'
+    );
+  }
+
+  const Razorpay = require('razorpay');
+  razorpayInstance = new Razorpay({ key_id: keyId, key_secret: keySecret });
+  return razorpayInstance;
+};
+
+// ---------------------------------------------------------------------------
+// Plan pricing (in paise — 1 INR = 100 paise)
+// ---------------------------------------------------------------------------
+const PLAN_PRICES = {
+  Pro: {
+    monthly:    14900,   // ₹149
+    yearly:    149000,   // ₹1490
+  },
+  Enterprise: {
+    monthly:    99900,   // ₹999
+    yearly:    999000,   // ₹9990
+  },
+};
+
+// ---------------------------------------------------------------------------
+// POST /api/payment/create-order
+// Creates a Razorpay order and returns it to the frontend
+// ---------------------------------------------------------------------------
+const createOrder = async (req, res) => {
   try {
-    console.log('Payment processing attempt:', {
-      hasUser: !!req.user,
-      userId: req.user?.id,
-      userEmail: req.user?.email
-    });
-    
-    // HARD AUTHENTICATION BLOCK
-    if (!req.user || !req.user.id || !req.user.email) {
-      console.log('BLOCKED: Payment attempt without proper authentication');
-      return res.status(401).json({
-        success: false,
-        message: 'AUTHENTICATION REQUIRED: You must be logged in to process payments'
-      });
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
     }
-    
-    const { 
-      razorpay_payment_id, 
-      razorpay_order_id, 
-      amount, 
-      plan, 
-      billing 
-    } = req.body;
 
-    const userId = req.user.id || req.user._id;
-    console.log('Processing payment for user:', userId);
+    const { plan, billing = 'monthly' } = req.body;
 
-    console.log('Payment request body:', req.body);
-    
-    if (!razorpay_payment_id || !amount || !plan || !billing) {
+    if (!plan || !PLAN_PRICES[plan]) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required payment details: payment_id, amount, plan, billing'
+        message: `Invalid plan. Choose from: ${Object.keys(PLAN_PRICES).join(', ')}`,
       });
     }
-    
-    // Use fallback order ID if not provided (for demo payments)
-    const orderIdToUse = razorpay_order_id || `demo_order_${Date.now()}`;
 
-    // Calculate subscription dates
-    const startDate = new Date();
-    const endDate = new Date();
-    const nextPaymentDate = new Date();
-
-    if (billing === 'monthly') {
-      endDate.setMonth(endDate.getMonth() + 1);
-      nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
-    } else {
-      endDate.setFullYear(endDate.getFullYear() + 1);
-      nextPaymentDate.setFullYear(nextPaymentDate.getFullYear() + 1);
+    if (!['monthly', 'yearly'].includes(billing)) {
+      return res.status(400).json({ success: false, message: 'billing must be "monthly" or "yearly"' });
     }
 
-    // Create payment record
-    const payment = new Payment({
-      user: userId,
+    const amount = PLAN_PRICES[plan][billing];
+
+    let razorpay;
+    try {
+      razorpay = getRazorpay();
+    } catch (err) {
+      return res.status(503).json({ success: false, message: err.message });
+    }
+
+    const order = await razorpay.orders.create({
+      amount,
+      currency: 'INR',
+      receipt: `order_${req.user.id}_${Date.now()}`.slice(0, 40),
+      notes: {
+        userId: String(req.user.id),
+        plan,
+        billing,
+      },
+    });
+
+    return res.json({
+      success: true,
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+      },
+      keyId: process.env.RAZORPAY_KEY_ID,
+      plan,
+      billing,
+    });
+  } catch (error) {
+    console.error('Create order error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create payment order' });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// POST /api/payment/verify
+// Verifies Razorpay signature, saves payment record, upgrades user plan
+// ---------------------------------------------------------------------------
+const verifyPayment = async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      plan,
+      billing = 'monthly',
+      amount,
+    } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !plan || !amount) {
+      return res.status(400).json({ success: false, message: 'Missing required payment fields' });
+    }
+
+    // --- Signature verification ---
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret || keySecret === 'YOUR_RAZORPAY_KEY_SECRET') {
+      return res.status(503).json({ success: false, message: 'Payment service not configured' });
+    }
+
+    const expectedSignature = crypto
+      .createHmac('sha256', keySecret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+      console.warn('⚠️  Invalid Razorpay signature for payment:', razorpay_payment_id);
+      return res.status(400).json({ success: false, message: 'Payment verification failed — invalid signature' });
+    }
+
+    // --- Compute subscription dates ---
+    const startDate = new Date();
+    const endDate = new Date();
+    if (billing === 'yearly') {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    } else {
+      endDate.setMonth(endDate.getMonth() + 1);
+    }
+
+    // --- Save payment record ---
+    const payment = await Payment.create({
+      user: req.user.id,
       razorpayPaymentId: razorpay_payment_id,
-      razorpayOrderId: orderIdToUse,
-      amount: amount / 100, // Convert from paise to rupees
+      razorpayOrderId: razorpay_order_id,
+      amount: amount / 100,   // paise → rupees
       plan,
       billing,
       status: 'completed',
       startDate,
       endDate,
-      nextPaymentDate
+      nextPaymentDate: endDate,
     });
 
-    await payment.save();
-
-    // Update user plan
-    await User.findByIdAndUpdate(userId, {
-      plan: plan,
+    // --- Upgrade user plan ---
+    await User.findByIdAndUpdate(req.user.id, {
+      plan,
       planStartDate: startDate,
       planEndDate: endDate,
-      nextPaymentDate: nextPaymentDate,
-      subscriptionStatus: 'active'
+      nextPaymentDate: endDate,
+      subscriptionStatus: 'active',
     });
 
-    res.json({
+    return res.json({
       success: true,
-      message: 'Payment processed successfully',
+      message: `Successfully upgraded to ${plan} plan!`,
       data: {
         paymentId: razorpay_payment_id,
-        plan: plan,
-        billing: billing,
+        plan,
+        billing,
         validUntil: endDate,
-        nextPayment: nextPaymentDate
-      }
+        nextPayment: endDate,
+      },
     });
-
   } catch (error) {
-    console.error('Payment processing error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to process payment'
-    });
+    console.error('Verify payment error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to verify payment' });
   }
 };
 
-// Get user's payment history
+// ---------------------------------------------------------------------------
+// POST /api/payment/process  (legacy — kept for backward compat)
+// ---------------------------------------------------------------------------
+const processPayment = async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    const { razorpay_payment_id, razorpay_order_id, amount, plan, billing = 'monthly' } = req.body;
+
+    if (!razorpay_payment_id || !amount || !plan) {
+      return res.status(400).json({ success: false, message: 'Missing required payment details' });
+    }
+
+    const startDate = new Date();
+    const endDate = new Date();
+    if (billing === 'yearly') {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    } else {
+      endDate.setMonth(endDate.getMonth() + 1);
+    }
+
+    await Payment.create({
+      user: req.user.id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpayOrderId: razorpay_order_id || `order_${Date.now()}`,
+      amount: amount / 100,
+      plan,
+      billing,
+      status: 'completed',
+      startDate,
+      endDate,
+      nextPaymentDate: endDate,
+    });
+
+    await User.findByIdAndUpdate(req.user.id, {
+      plan,
+      planStartDate: startDate,
+      planEndDate: endDate,
+      nextPaymentDate: endDate,
+      subscriptionStatus: 'active',
+    });
+
+    return res.json({
+      success: true,
+      message: 'Payment processed successfully',
+      data: { paymentId: razorpay_payment_id, plan, billing, validUntil: endDate },
+    });
+  } catch (error) {
+    console.error('Process payment error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to process payment' });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// GET /api/payment/history
+// ---------------------------------------------------------------------------
 const getPaymentHistory = async (req, res) => {
   try {
-    const userId = req.user.id || req.user._id;
-
-    const payments = await Payment.find({ user: userId })
+    const payments = await Payment.find({ user: req.user.id })
       .sort({ createdAt: -1 })
       .limit(10);
 
-    res.json({
-      success: true,
-      data: payments
-    });
-
+    return res.json({ success: true, data: payments });
   } catch (error) {
     console.error('Get payment history error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get payment history'
-    });
+    return res.status(500).json({ success: false, message: 'Failed to get payment history' });
   }
 };
 
-// Get current subscription status
+// ---------------------------------------------------------------------------
+// GET /api/subscription/status
+// ---------------------------------------------------------------------------
 const getSubscriptionStatus = async (req, res) => {
   try {
-    const userId = req.user.id || req.user._id;
+    const user = await User.findById(req.user.id)
+      .select('plan planEndDate nextPaymentDate subscriptionStatus planStartDate');
 
-    const user = await User.findById(userId).select('plan planEndDate nextPaymentDate subscriptionStatus');
-    
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Check if subscription is expired
     const now = new Date();
     const isExpired = user.planEndDate && new Date(user.planEndDate) < now;
+    const daysRemaining = user.planEndDate
+      ? Math.max(0, Math.ceil((new Date(user.planEndDate) - now) / (1000 * 60 * 60 * 24)))
+      : 0;
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         currentPlan: user.plan || 'Basic',
+        planStartDate: user.planStartDate,
         planEndDate: user.planEndDate,
         nextPaymentDate: user.nextPaymentDate,
         subscriptionStatus: isExpired ? 'expired' : (user.subscriptionStatus || 'inactive'),
-        daysRemaining: user.planEndDate ? Math.ceil((new Date(user.planEndDate) - now) / (1000 * 60 * 60 * 24)) : 0
-      }
+        daysRemaining,
+        isActive: !isExpired && user.subscriptionStatus === 'active',
+      },
     });
-
   } catch (error) {
     console.error('Get subscription status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get subscription status'
-    });
+    return res.status(500).json({ success: false, message: 'Failed to get subscription status' });
   }
 };
 
 module.exports = {
+  createOrder,
+  verifyPayment,
   processPayment,
   getPaymentHistory,
-  getSubscriptionStatus
+  getSubscriptionStatus,
 };

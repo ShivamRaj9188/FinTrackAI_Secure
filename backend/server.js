@@ -88,6 +88,8 @@ const {
 
 // Import payment functions
 const {
+  createOrder,
+  verifyPayment,
   processPayment,
   getPaymentHistory,
   getSubscriptionStatus
@@ -298,8 +300,10 @@ const { getUserPlanLimits } = require('./middleware/planLimits');
 app.get('/api/user/plan-limits', strictAuthMiddleware, getUserPlanLimits);  // Get user plan limits
 
 // Payment Routes (Protected - require STRICT authentication)
-app.post('/api/payment/process', strictAuthMiddleware, processPayment);     // Process payment after Razorpay success
-app.get('/api/payment/history', strictAuthMiddleware, getPaymentHistory);   // Get payment history
+app.post('/api/payment/create-order', strictAuthMiddleware, createOrder);   // Step 1: Create Razorpay order
+app.post('/api/payment/verify', strictAuthMiddleware, verifyPayment);        // Step 2: Verify signature & activate plan
+app.post('/api/payment/process', strictAuthMiddleware, processPayment);      // Legacy fallback
+app.get('/api/payment/history', strictAuthMiddleware, getPaymentHistory);    // Get payment history
 app.get('/api/subscription/status', strictAuthMiddleware, getSubscriptionStatus); // Get subscription status
 
 // Newsletter Routes (Public - no authentication required)
