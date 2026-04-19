@@ -176,12 +176,12 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-fade-in">
-        <div className="h-8 w-48 skeleton"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-28 skeleton rounded-2xl"></div>)}
+      <div className="min-h-[60vh] flex flex-col items-center justify-center animate-fade-in translate-y-[-10%]">
+        <div className="w-12 h-12 border-4 border-white/5 border-t-[var(--accent-primary)] rounded-full animate-spin mb-6"></div>
+        <div className="text-center">
+          <p className="text-sm font-bold text-white tracking-widest uppercase">Initializing Dashboard</p>
+          <p className="text-[11px] text-[#444] mt-2">Syncing your financial intelligence...</p>
         </div>
-        <div className="h-[400px] skeleton rounded-2xl"></div>
       </div>
     );
   }

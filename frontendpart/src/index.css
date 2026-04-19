@@ -10,6 +10,14 @@ html {
   scroll-padding-top: 80px;
 }
 
+body {
+  background-color: #0A0A0A;
+  color: #FFFFFF;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 * {
   scroll-behavior: smooth;
 }
