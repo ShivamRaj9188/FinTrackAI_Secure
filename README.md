@@ -9,46 +9,36 @@ The application is deployed and accessible at the following production endpoint:
 ---
 
 ## Visual Previews
-
+### User Dashboard Interface
+![FinTrackAI User Dashboard](./docs/previews/dashboard-preview.png)
 ### Landing Page Interface
-![FinTrackAI landing page preview](./docs/previews/landing-page-preview.png)
-
-### Core Analytics Architecture
-![FinTrackAI features section preview](./docs/previews/features-section-preview.png)
+![FinTrackAI Landing Page](./docs/previews/landing-page-preview.png)
 
 ---
 
 ## Core Capabilities
-
 ### AI-Driven Financial Intelligence
 The platform integrates the Google Gemini Pro Large Language Model (LLM) to perform deep semantic analysis of transaction histories. This engine identifies spending patterns, detects latent subscription models, and provides personalized optimization strategies. The implementation includes strict structural validation to ensure high precision and eliminate model hallucinations.
-
 ### ML-Enhanced Categorization Engine
 FinTrackAI utilizes a hybrid categorization system combining deterministic rule-based matching with probabilistic scoring models. This engine automatically assigns labels to transactions based on merchant signatures and historical data, significantly reducing manual data entry for the end user.
-
 ### Advanced Data Ingestion and Validation
 The system features a robust ingestion pipeline for CSV and PDF financial records. Every upload undergoes a multi-stage validation process that includes schema verification, row-level integrity checks, and preview generation. This ensures that only sanitized and structured data is persisted within the MongoDB environment.
-
 ### Secure Payment Gateway and Subscription Management
 Integrated with the Razorpay ecosystem, FinTrackAI manages professional subscription tiers (Basic, Pro, and Enterprise). The implementation supports real-time order creation, secure terminal checkout, and server-side HMAC-SHA256 signature verification to ensure secure entitlement management.
-
 ### Dynamic Insights and Analytics
 A high-performance dashboard provides real-time visualizations of categorical expenditure, weekly spending velocity, and savings projections. The analytics layer aggregates thousands of data points into high-level summaries, enabling users to make data-driven financial decisions.
-
 ### Multi-Factor Authentication and Security
 The application supports secure onboarding via JSON Web Token (JWT) based email/password authentication or Google OAuth 2.0 integration. Password security is maintained through salted bcrypt hashing. The platform implementing several layers of security including XSS protection, rate limiting, and NoSQL injection guardrails.
 
 ---
 
 ## Technical Architecture
-
 ### Tech Stack
 - **Frontend**: React.js with Vite, optimized for high-performance rendering.
 - **Backend**: Node.js and Express.js, utilizing a modular controller-service architecture.
 - **Database**: MongoDB with Mongoose ODM for flexible document-based persistence.
 - **AI/ML**: Google Gemini Pro API for semantic financial analysis.
 - **Payments**: Razorpay API for secure global transactions.
-
 ### System Directory Structure
 ```text
 FinTrackAI_Secure/
@@ -71,7 +61,6 @@ FinTrackAI_Secure/
 ---
 
 ## Local Development Setup
-
 ### Backend Service Initialization
 1. Navigate to the backend directory:
    ```bash
@@ -90,7 +79,6 @@ FinTrackAI_Secure/
    ```bash
    npm run dev
    ```
-
 ### Frontend Application Initialization
 1. Navigate to the client directory:
    ```bash
@@ -106,31 +94,19 @@ FinTrackAI_Secure/
 
 ---
 
-## Additive Upgrade Modules
-
-- **Razorpay Integration**: End-to-end payment processing with signature verification.
-- **Plan Limits**: Usage tracking and automated blocking for Basic users.
-- **Validated Ingestion**: CSV/PDF uploads with preview and warning summaries.
-- **Categorization Service**: ML-style scoring and rule-based fallback.
-- **Insights Engine**: Savings summaries and categorical expenditure intelligence.
-
----
-
-## New API Endpoints
-
-### Auth
-- `GET /api/auth/google/url`
-
+## API Documentation
+### Authentication Endpoints
+- `POST /api/auth/register`: User registration.
+- `POST /api/auth/login`: Identity verification.
+- `GET /api/auth/google/url`: OAuth synchronization url.
 ### Payment and Subscription Endpoints
 - `POST /api/payment/create-order`: Razorpay order orchestration.
 - `POST /api/payment/verify`: Transaction signature verification.
 - `GET /api/subscription/status`: Real-time entitlement check.
 - `GET /api/user/plan-limits`: Usage tracking and bandwidth check.
-
 ### Data Ingestion Endpoints
 - `POST /api/ingestion/upload`: Secure file ingestion (PDF/CSV).
 - `GET /api/ingestion/:id`: Job status and validation summary.
-
 ### Analytics Endpoints
 - `GET /api/insights/dashboard`: Aggregated financial summary.
 - `GET /api/insights/categories`: Categorical spending breakdown.
@@ -151,16 +127,8 @@ npm run build
 
 ---
 
-## Contact & Support
-For support or enterprise inquiries, please contact:
-- **Location**: Uttarakhand, India
-- **Phone**: +91 63996 66608
-- **Email**: ashish.raj.00099@gmail.com
-
----
-
-## Security and Compliance
-- **XSS Protection**: Enforced through Helmet and React-internal sanitization.
-- **Rate Limiting**: Protects authentication and payment endpoints.
-- **NoSQL Injection Guard**: Specialized middleware sanitizes all MongoDB queries.
-- **HMAC Verification**: All payment status updates require valid Razorpay signatures.
+## Contact and Professional Support
+For technical support, service level agreements, or enterprise inquiries:
+- **Regional HQ**: Uttarakhand, India
+- **Communication Channel**: +91 63996 66608
+- **Official Inquiries**: ashish.raj.00099@gmail.com
