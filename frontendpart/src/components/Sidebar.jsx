@@ -27,9 +27,16 @@ const Sidebar = () => {
   ];
 
   const handleLogout = () => {
+    // Clear ALL auth-related keys so no stale token remains
     localStorage.removeItem('authToken');
     localStorage.removeItem('userInfo');
-    navigate('/login');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminInfo');
+    // Set a sessionStorage flag so both Login AND Signup pages
+    // skip their "already logged in" redirect guard post-logout
+    sessionStorage.setItem('postLogout', '1');
+    navigate('/login', { state: { justLoggedOut: true } });
   };
 
   const currentPath = location.pathname;

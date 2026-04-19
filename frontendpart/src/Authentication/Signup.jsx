@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { register } from '../api';
 import { startGoogleOAuth } from '../api/oauth';
 
@@ -12,12 +12,20 @@ const Signup = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Redirect if already logged in
+  // Redirect if already logged in — but NOT when coming from a logout flow
   useEffect(() => {
+    // Check both router state and sessionStorage for post-logout signal
+    const justLoggedOut = location.state?.justLoggedOut || sessionStorage.getItem('postLogout');
+    if (justLoggedOut) {
+      // Consume the flag so future visits to /signup do the normal redirect check
+      sessionStorage.removeItem('postLogout');
+      return; // Stay on signup page
+    }
     const token = localStorage.getItem('authToken');
     if (token) navigate('/dashboard');
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
