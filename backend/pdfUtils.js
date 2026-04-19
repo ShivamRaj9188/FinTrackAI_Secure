@@ -40,23 +40,42 @@ const mapPasswordError = (error) => {
 
 const renderPage = async (pageData) => {
   const textContent = await pageData.getTextContent({
-    normalizeWhitespace: false,
     disableCombineTextItems: false
   });
 
-  let lastY;
-  let text = '';
+  // 1. Sort safely by strict Y-axis top-to-bottom.
+  const ySortedItems = textContent.items.slice().sort((a, b) => b.transform[5] - a.transform[5]);
 
-  for (const item of textContent.items) {
-    if (lastY === item.transform[5] || !lastY) {
-      text += item.str;
+  // 2. Group into clean horizontal rows based on 10-point tolerance (accounts for font baseline shifts).
+  const rows = [];
+  let currentRow = [];
+  let rowAnchorY = null;
+
+  for (const item of ySortedItems) {
+    if (!item.str.trim()) continue;
+    
+    // Y-axis inversion since PDF coordinates start bottom-left
+    const currentY = item.transform[5];
+    
+    if (rowAnchorY === null || Math.abs(rowAnchorY - currentY) < 10) {
+      currentRow.push(item);
+      if (rowAnchorY === null) rowAnchorY = currentY;
     } else {
-      text += `\n${item.str}`;
+      rows.push(currentRow);
+      currentRow = [item];
+      rowAnchorY = currentY;
     }
-    lastY = item.transform[5];
+  }
+  if (currentRow.length) rows.push(currentRow);
+
+  // 3. Sort each row horizontally by strict X-axis, then condense into strings
+  let text = '';
+  for (const row of rows) {
+    row.sort((a, b) => a.transform[4] - b.transform[4]); // Sort strictly left-to-right
+    text += row.map((item) => item.str.trim()).join(' ') + '\n';
   }
 
-  return text;
+  return text.replace(/ +/g, ' ').trim();
 };
 
 const extractTextFromPdf = async (filePath, password) => {
@@ -103,7 +122,9 @@ const extractTransactionsFromPDF = async (filePath, userId, uploadId, options = 
     let headerPassed = false;
     let previousBalance = null;
 
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
       if (line.includes('Date') && (line.includes('Narration') || line.includes('Description') || line.includes('Particulars')) && line.includes('Balance')) {
         headerPassed = true;
         continue;
@@ -118,31 +139,66 @@ const extractTransactionsFromPDF = async (filePath, userId, uploadId, options = 
         continue;
       }
 
-      if (!headerPassed) continue;
+      const dateMatch = line.match(/^(?:\d+\.?\s+|-\s+)?(\d{2}[-\s/]*[a-zA-Z]{3}[-\s/]*\d{2,4}|\d{2}[-\s/]*\d{2}[-\s/]*\d{2,4})/);
+      
+      if (dateMatch && !headerPassed) {
+        headerPassed = true;
+      }
 
-      const dateMatch = line.match(/^(?:\d+\.?\s+|-\s+)?(\d{2}[-\s/][a-zA-Z]{3}[-\s/]\d{2,4}|\d{2}[-\s/]\d{2}[-\s/]\d{2,4})/);
+      if (!headerPassed) continue;
       if (!dateMatch) continue;
 
       const dateStr = dateMatch[1];
-      let date = new Date(dateStr.replace(/-/g, ' ').replace(/\//g, ' '));
       
-      const ddmmyy = dateStr.match(/^(\d{2})[-\/](\d{2})[-\/](\d{2,4})$/);
+      // Inject spaces if missing to ensure JS Date can parse condensed strings natively
+      const normalizedDateStr = dateStr.replace(/^(\d{2})[-\s/]*([a-zA-Z]{3})[-\s/]*(\d{2,4})$/i, '$1 $2 $3')
+                                       .replace(/^(\d{2})[-\s/]*(\d{2})[-\s/]*(\d{2,4})$/, '$1/$2/$3');
+
+      let date = new Date(normalizedDateStr);
+      
+      const ddmmyy = normalizedDateStr.match(/^(\d{2})\/(\d{2})\/(\d{2,4})$/);
       if (ddmmyy) {
         let [, day, month, year] = ddmmyy;
         if (year.length === 2) year = `20${year}`;
         date = new Date(`${year}-${month}-${day}`);
-      } else if (Number.isNaN(date.getTime())) {
-        date = new Date(dateStr);
       }
 
       if (Number.isNaN(date.getTime())) continue;
 
       const lineWithoutDate = line.substring(dateMatch[0].length).trim();
-      const descriptionEndIndex = lineWithoutDate.search(/[\d,]+\.\d{2}/);
-      if (descriptionEndIndex === -1) continue;
+      let descriptionEndIndex = lineWithoutDate.search(/[\d,]+\.\d{2}/);
+      
+      let description = "";
+      let numbersText = "";
 
-      const description = lineWithoutDate.substring(0, descriptionEndIndex).trim();
-      const numbersText = lineWithoutDate.substring(descriptionEndIndex);
+      if (descriptionEndIndex !== -1) {
+        description = lineWithoutDate.substring(0, descriptionEndIndex).trim();
+        numbersText = lineWithoutDate.substring(descriptionEndIndex);
+      } else {
+        description = lineWithoutDate;
+        let lookaheadIndex = i;
+        
+        while (lookaheadIndex + 1 < lines.length && lookaheadIndex - i < 4) {
+          lookaheadIndex++;
+          const nextLine = lines[lookaheadIndex];
+          
+          if (nextLine.match(/^(?:\d+\.?\s+|-\s+)?(\d{2}[-\s/]*[a-zA-Z]{3}[-\s/]*\d{2,4}|\d{2}[-\s/]*\d{2}[-\s/]*\d{2,4})/)) {
+            break; // Stop if we hit a new transaction row
+          }
+          
+          const nextDescEndIndex = nextLine.search(/[\d,]+\.\d{2}/);
+          if (nextDescEndIndex !== -1) {
+            description += " " + nextLine.substring(0, nextDescEndIndex).trim();
+            numbersText = nextLine.substring(nextDescEndIndex);
+            break;
+          } else {
+            description += " " + nextLine.trim();
+          }
+        }
+      }
+
+      if (!numbersText) continue;
+
       const rawNumbers = numbersText.match(/[\d,]+\.\d{2}/g) || [];
       const numbers = rawNumbers.map(n => Number.parseFloat(n.replace(/,/g, '')));
 
