@@ -1,11 +1,9 @@
 const User = require('../authentication/User');
 
-const DEMO_EMAILS = [
-  'ashish.raj.00099@gmail.com',
-  'ashishraj26@gmail.com',
-  'demo@fintrackai.com',
-  'recruiter@fintrackai.com'
-];
+const DEMO_EMAILS = (process.env.DEMO_EMAILS || '')
+  .split(',')
+  .map((email) => email.trim())
+  .filter(Boolean);
 
 const COUNTABLE_INGESTION_STATUSES = ['completed', 'completed_with_warnings'];
 

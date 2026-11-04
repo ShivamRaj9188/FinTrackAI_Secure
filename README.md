@@ -1,6 +1,6 @@
 # FinTrackAI: Advanced Financial Intelligence and Analytics Platform
 
-FinTrackAI is a sophisticated financial technology ecosystem engineered to provide automated transaction tracking, intelligent expense categorization, and actionable financial insights. Powered by the Google Gemini AI engine, the platform transforms raw financial data from bank statements into a structured, analytical overview of spending habits and savings opportunities.
+FinTrackAI is a full-stack finance app for automated transaction tracking, expense categorization, and spending insights. Powered by the Google Gemini AI engine, the platform transforms raw financial data from bank statements into a structured, analytical overview of spending habits and savings opportunities.
 
 ## Production Environment
 The application is deployed and accessible at the following production endpoint:
@@ -23,12 +23,12 @@ The platform integrates the Google Gemini Pro Large Language Model (LLM) to perf
 ### ML-Enhanced Categorization Engine
 FinTrackAI utilizes a hybrid categorization system combining deterministic rule-based matching with probabilistic scoring models. This engine automatically assigns labels to transactions based on merchant signatures and historical data.
 ### Advanced Data Ingestion and Validation
-The system features a robust ingestion pipeline for CSV and PDF financial records. The custom PDF extraction engine utilizes a dynamic multi-line lookahead algorithm and Y-axis coordinate clustering to flawlessly reconstruct fractured tables and word-wrapped bank statements. Furthermore, it securely processes encrypted, password-protected statements through an interactive 409-conflict unlocking protocol without persisting user credentials. Every upload undergoes a multi-stage validation process that includes schema verification, row-level integrity checks, and preview generation.
+The system features a robust ingestion pipeline for CSV and PDF financial records. The custom PDF extraction engine utilizes a dynamic multi-line lookahead algorithm and Y-axis coordinate clustering to reconstruct fractured tables and word-wrapped bank statements. Furthermore, it securely processes encrypted, password-protected statements through an interactive 409-conflict unlocking protocol without persisting user credentials. Every upload undergoes a multi-stage validation process that includes schema verification, row-level integrity checks, and preview generation.
 ### Secure Payment Gateway and Subscription Management
-Integrated with the Razorpay ecosystem, FinTrackAI manages professional subscription tiers (Basic, Pro, and Enterprise). The implementation supports real-time order creation, secure terminal checkout, and server-side HMAC-SHA256 signature verification. A deterministic environment-bypass matrix is additionally integrated at the middleware level to securely unlock scalable Enterprise testing capabilities for authorized recruiters and demonstration accounts.
+Integrated with the Razorpay ecosystem, FinTrackAI manages professional subscription tiers (Basic, Pro, and Enterprise). The implementation supports real-time order creation, secure terminal checkout, and server-side HMAC-SHA256 signature verification. Demo accounts listed in the `DEMO_EMAILS` environment variable skip plan limits.
 ### Dynamic Insights and Analytics
 A high-performance dashboard provides real-time visualizations of categorical expenditure, weekly spending velocity, and savings projections. The analytics layer aggregates thousands of data points into high-level summaries.
-### Multi-Factor Authentication and Security
+### Authentication and Security
 The application supports secure onboarding via JWT-based email/password authentication or Google OAuth 2.0 integration. The platform implements several layers of security including XSS protection, rate limiting, and NoSQL injection guardrails.
 
 ## Technical Architecture
@@ -66,6 +66,7 @@ FinTrackAI_Secure/
    - `GEMINI_API_KEY`: Google AI credentials.
    - `RAZORPAY_KEY_ID`: Payment gateway public identifier.
    - `RAZORPAY_KEY_SECRET`: Payment gateway private key.
+   - `DEMO_EMAILS`: Optional comma-separated accounts that skip plan limits.
 3. Launch development instance: `npm run dev`
 
 ### Frontend Application Initialization
@@ -95,9 +96,3 @@ FinTrackAI_Secure/
 `cd backend && npm test`
 ### Frontend Production Build
 `cd frontendpart && npm run build`
-
-## Contact and Professional Support
-For support or enterprise inquiries:
-- **Regional HQ**: Uttarakhand, India
-- **Communication Channel**: +91 63996 66608
-- **Official Inquiries**: ashish.raj.00099@gmail.com
